@@ -2,8 +2,10 @@
 pragma solidity ^0.8.0;
 
 import "hardhat/console.sol";
+import {IDefenDAO} from "./IDefenDAO.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
-contract Greeter {
+contract DefenDAO is IDefenDAO {
     string private greeting;
 
     constructor(string memory _greeting) {
