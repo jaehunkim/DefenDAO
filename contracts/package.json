@@ -50,5 +50,8 @@
     "test": "hardhat test",
     "build": "hardhat compile && tsc",
     "hardhat": "hardhat"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.8.0"
   }
 }
