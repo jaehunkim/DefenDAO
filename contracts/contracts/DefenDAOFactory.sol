@@ -18,7 +18,7 @@ contract DefenDAOFactory is IDefenDAOFactory, Ownable {
         address token_,
         uint256 curFloorPrice_,
         uint256 offerPriceUnit_
-    ) public override onlyOwner {
+    ) public virtual override onlyOwner {
         require(token_ != address(0), "token cannot be zero address");
         // TODO : check erc721
         require(getCollections[token_] == address(0), "collection exists");
