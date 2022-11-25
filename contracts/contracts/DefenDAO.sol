@@ -20,7 +20,7 @@ contract DefenDAO is Ownable, IDefenDAO {
         address nftAddress_,
         uint256 curFloorPrice_,
         uint256 offerPriceUnit_
-    ) public onlyOwner {
+    ) external override onlyOwner {
         nftAddress = nftAddress_;
         curFloorPrice = curFloorPrice_;
         offerPriceUnit = offerPriceUnit_;

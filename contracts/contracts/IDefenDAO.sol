@@ -13,6 +13,12 @@ interface IDefenDAO {
         uint256 offerCount
     );
 
+    function initialize(
+        address nftAddress_,
+        uint256 curFloorPrice_,
+        uint256 offerPriceUnit_
+    ) external;
+
     function makeOffer(uint256 price, uint256 offerCount) external;
 
     function cancelOffer(uint256 price, uint256 offerCount) external;
