@@ -59,6 +59,27 @@ async function main() {
     value: offerPriceUnit.mul(user2OfferCount),
   });
   await defenDAO.connect(user2).makeOffer(offerPrice, user2OfferCount);
+
+  await defenDAOFactory.makeCollection(
+    "0xED5AF388653567Af2F388E6224dC7C4b3241C544",
+    "azuki",
+    ethers.utils.parseEther("10"),
+    ethers.utils.parseEther("0.5")
+  );
+
+  await defenDAOFactory.makeCollection(
+    "0x477F885f6333317f5B2810ECc8AfadC7d5b69dD2",
+    "yugiyn-official",
+    ethers.utils.parseEther("0.3"),
+    ethers.utils.parseEther("0.05")
+  );
+
+  await defenDAOFactory.makeCollection(
+    "0x8a90CAb2b38dba80c64b7734e58Ee1dB38B8992e",
+    "doodles-official",
+    ethers.utils.parseEther("6.7"),
+    ethers.utils.parseEther("0.5")
+  );
 }
 
 // We recommend this pattern to be able to use async/await everywhere
