@@ -1,25 +1,63 @@
+/* eslint-disable camelcase */
 // We require the Hardhat Runtime Environment explicitly here. This is optional
 // but useful for running the script in a standalone fashion through `node <script>`.
 //
 // When running the script with `npx hardhat run <script>` you'll find the Hardhat
 // Runtime Environment's members available in the global scope.
 import { ethers } from "hardhat";
+import {
+  MockERC721__factory,
+  TestDefenDAOFactory__factory,
+  TestDefenDAO__factory,
+} from "../typechain";
+
+const floorPrice = ethers.utils.parseEther("1");
+const offerPriceUnit = ethers.utils.parseEther("0.1");
 
 async function main() {
-  // Hardhat always runs the compile task when running scripts with its command
-  // line interface.
-  //
-  // If this script is run directly using `node` you may want to call compile
-  // manually to make sure everything is compiled
-  // await hre.run('compile');
+  const [deployer, seller, user1, user2] = await ethers.getSigners();
+  const mockERC721 = await new MockERC721__factory(deployer).deploy();
+  await mockERC721.deployed();
+  await mockERC721.connect(deployer).mint(1);
+  console.log("MockERC721 Deployed \t\t\t ", mockERC721.address);
 
-  // We get the contract to deploy
-  const Greeter = await ethers.getContractFactory("Greeter");
-  const greeter = await Greeter.deploy("Hello, Hardhat!");
+  const defenDAOFactory = await new TestDefenDAOFactory__factory(
+    deployer
+  ).deploy();
+  await defenDAOFactory.deployed();
+  console.log("DefenDAOFactory Deployed \t\t ", defenDAOFactory.address);
 
-  await greeter.deployed();
+  await defenDAOFactory.makeCollection(
+    mockERC721.address,
+    floorPrice,
+    offerPriceUnit
+  );
 
-  console.log("Greeter deployed to:", greeter.address);
+  const blockNumBefore = await ethers.provider.getBlockNumber();
+  const filter = defenDAOFactory.filters.CollectionCreated();
+  const events = await defenDAOFactory.queryFilter(filter, blockNumBefore - 1);
+  const lastevent = events[events.length - 1];
+  const collectionAddr = lastevent.args.collection;
+  const defenDAO = await TestDefenDAO__factory.connect(
+    collectionAddr,
+    deployer
+  );
+  console.log("DefenDAO collection created \t\t ", defenDAO.address);
+
+  const user1OfferCount = 8;
+  const offerPrice = ethers.utils.parseEther("0.9");
+  await user1.sendTransaction({
+    to: defenDAO.address,
+    value: offerPriceUnit.mul(user1OfferCount),
+  });
+  await defenDAO.connect(user1).makeOffer(offerPrice, user1OfferCount);
+
+  const user2OfferCount = 12;
+  await user2.sendTransaction({
+    to: defenDAO.address,
+    value: offerPriceUnit.mul(user2OfferCount),
+  });
+  await defenDAO.connect(user2).makeOffer(offerPrice, user2OfferCount);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
