@@ -28,7 +28,8 @@ async function main() {
   console.log("DefenDAOFactory Deployed \t\t ", defenDAOFactory.address);
 
   await defenDAOFactory.makeCollection(
-    mockERC721.address,
+    "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D",
+    "bored-ape-yocht-ciub-officiai",
     floorPrice,
     offerPriceUnit
   );

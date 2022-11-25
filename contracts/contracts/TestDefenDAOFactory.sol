@@ -9,6 +9,7 @@ contract TestDefenDAOFactory is DefenDAOFactory {
     function makeCollection(
         address token_,
         address marketplaceAddress_,
+        string calldata slug_,
         uint256 curFloorPrice_,
         uint256 offerPriceUnit_
     ) public override onlyOwner {
@@ -28,7 +29,9 @@ contract TestDefenDAOFactory is DefenDAOFactory {
             offerPriceUnit_
         );
         getCollections[token_] = col;
+        getCollectionIndex[token_] = collections.length;
         collections.push(col);
+        slugs.push(slug_);
         emit CollectionCreated(token_, col);
     }
 }

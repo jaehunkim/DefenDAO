@@ -45,6 +45,7 @@ describe("DefenDAOFactory", function () {
       defenDAOFactory.makeCollection(
         mockERC721.address,
         "0x00000000006c3852cbEf3e08E8dF289169EdE581", // opensea seaport
+        "slug",
         floorPrice,
         offerPriceUnit
       )

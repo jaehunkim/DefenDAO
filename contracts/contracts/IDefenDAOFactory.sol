@@ -2,11 +2,11 @@
 pragma solidity ^0.8.0;
 
 interface IDefenDAOFactory {
-    /// functions
-    // - create new DefenDAO unit for specific NFT collection
-    function makeCollection(address, address, uint256, uint256) external;
-
+/// functions
+// - create new DefenDAO unit for specific NFT collection
+    function makeCollection(address, address, string calldata, uint256, uint256) external;
     function getCollection(address) external returns (address);
 
     function getAllCollections() external returns (address[] memory);
+    function getAllSlugs() external returns (string[] memory);
 }

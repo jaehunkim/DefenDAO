@@ -8,7 +8,9 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 contract DefenDAOFactory is IDefenDAOFactory, Ownable {
     mapping(address => address) public getCollections;
+    mapping(address => uint256) public getCollectionIndex;
     address[] public collections;
+    string[] public slugs;
 
     event CollectionCreated(address indexed token, address collection);
 
@@ -17,6 +19,7 @@ contract DefenDAOFactory is IDefenDAOFactory, Ownable {
     function makeCollection(
         address token_,
         address marketplaceAddress_,
+        string calldata slug_,
         uint256 curFloorPrice_,
         uint256 offerPriceUnit_
     ) public virtual override onlyOwner {
@@ -36,7 +39,9 @@ contract DefenDAOFactory is IDefenDAOFactory, Ownable {
             offerPriceUnit_
         );
         getCollections[token_] = col;
+        getCollectionIndex[token_] = collections.length;
         collections.push(col);
+        slugs.push(slug_);
         emit CollectionCreated(token_, col);
     }
 
@@ -54,5 +59,9 @@ contract DefenDAOFactory is IDefenDAOFactory, Ownable {
         returns (address[] memory)
     {
         return collections;
+    }
+
+    function getAllSlugs() external view override returns (string[] memory) {
+        return slugs;
     }
 }
