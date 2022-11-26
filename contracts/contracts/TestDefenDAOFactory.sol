@@ -35,4 +35,19 @@ contract TestDefenDAOFactory is DefenDAOFactory {
         slugs.push(slug_);
         emit CollectionCreated(token_, col);
     }
+
+    function mockRecordRecentSold(
+        address token_,
+        uint256 nftId_,
+        uint256 price_,
+        address claimer_
+    ) public onlyOwner {
+        recentSolds[rsEndIdx] = RecentSold(token_, nftId_, price_, claimer_);
+        rsEndIdx++;
+
+        if (rsEndIdx - rsBeginIdx > 10) {
+            delete recentSolds[rsBeginIdx];
+            rsBeginIdx++;
+        }
+    }
 }

@@ -8,4 +8,6 @@ interface TestIDefenDAO {
         uint256 curFloorPrice_,
         uint256 offerPriceUnit_
     ) external;
+
+    function mockRecordRecentSold(address, uint256, uint256, address) external;
 }

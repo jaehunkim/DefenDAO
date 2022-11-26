@@ -8,9 +8,9 @@ import {DefenDAO} from "./DefenDAO.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 contract DefenDAOFactory is IDefenDAOFactory, Ownable {
-    mapping(uint256 => RecentSold) private recentSolds;
-    uint256 private rsBeginIdx;
-    uint256 private rsEndIdx;
+    mapping(uint256 => RecentSold) public recentSolds;
+    uint256 public rsBeginIdx;
+    uint256 public rsEndIdx;
 
     mapping(address => address) public getCollections;
     mapping(address => uint256) public getCollectionIndex;

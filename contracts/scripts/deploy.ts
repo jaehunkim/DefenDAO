@@ -18,7 +18,6 @@ async function main() {
   const [deployer, seller, user1, user2] = await ethers.getSigners();
   const mockERC721 = await new MockERC721__factory(deployer).deploy();
   await mockERC721.deployed();
-  await mockERC721.connect(deployer).mint(1);
   console.log("MockERC721 Deployed \t\t\t ", mockERC721.address);
 
   const defenDAOFactory = await new TestDefenDAOFactory__factory(
@@ -80,6 +79,28 @@ async function main() {
     ethers.utils.parseEther("6.7"),
     ethers.utils.parseEther("0.5")
   );
+
+  await defenDAOFactory.mockRecordRecentSold(
+    "0xED5AF388653567Af2F388E6224dC7C4b3241C544",
+    300,
+    ethers.utils.parseEther("9.5"),
+    user1.address
+  );
+  await defenDAOFactory.mockRecordRecentSold(
+    "0x477F885f6333317f5B2810ECc8AfadC7d5b69dD2",
+    200,
+    ethers.utils.parseEther("0.25"),
+    user1.address
+  );
+  await defenDAOFactory.mockRecordRecentSold(
+    "0x8a90CAb2b38dba80c64b7734e58Ee1dB38B8992e",
+    100,
+    ethers.utils.parseEther("6.5"),
+    user2.address
+  );
+
+  const recentSolds = await defenDAOFactory.getRecentSolds();
+  console.log(recentSolds);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
