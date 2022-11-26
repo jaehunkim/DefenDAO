@@ -7,8 +7,17 @@
     "outDir": "dist",
     "declaration": true,
     "skipLibCheck": true,
-    "rootDir": "./"
+    "rootDir": "./",
+    "resolveJsonModule": true
   },
-  "include": ["./scripts", "./test", "./typechain", "./src", "./utils", "./types", "./data"],
+  "include": [
+    "./scripts",
+    "./test",
+    "./typechain",
+    "./src",
+    "./utils",
+    "./types",
+    "./data"
+  ],
   "files": ["./hardhat.config.ts"]
 }
