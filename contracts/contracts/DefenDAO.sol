@@ -76,6 +76,7 @@ contract DefenDAO is Ownable, IDefenDAO {
             value: offerPriceUnit * offerCount
         }("");
         require(sent, "Failed to send Ether");
+        reserve = getBalance();
     }
 
     function claimNFTs(uint256[] memory tokenIds) external override {
