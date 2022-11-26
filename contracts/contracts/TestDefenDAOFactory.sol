@@ -21,7 +21,12 @@ contract TestDefenDAOFactory is DefenDAOFactory {
         assembly {
             col := create2(0, add(bytecode, 32), mload(bytecode), salt)
         }
-        TestIDefenDAO(col).initialize(token_, marketplaceAddress_, curFloorPrice_, offerPriceUnit_);
+        TestIDefenDAO(col).initialize(
+            token_,
+            marketplaceAddress_,
+            curFloorPrice_,
+            offerPriceUnit_
+        );
         getCollections[token_] = col;
         collections.push(col);
         emit CollectionCreated(token_, col);

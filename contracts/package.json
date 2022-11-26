@@ -52,7 +52,9 @@
   "scripts": {
     "test": "hardhat test",
     "build": "hardhat compile && tsc",
-    "hardhat": "hardhat"
+    "hardhat": "hardhat",
+    "lint:sol": "solhint --config ./.solhint.json --max-warnings 0 \"contracts/**/*.sol\"",
+    "prettier": "prettier --config .prettierrc --write \"**/*.{js,json,md,sol,ts}\""
   },
   "dependencies": {
     "@openzeppelin/contracts": "^4.8.0",

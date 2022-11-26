@@ -1,7 +1,7 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
-import { BasicOrderParameters } from "./ConsiderationStructs.sol";
+import {BasicOrderParameters} from "./ConsiderationStructs.sol";
 
 interface IDefenDAO {
     event MadeOffer(
@@ -28,7 +28,10 @@ interface IDefenDAO {
 
     function claimNFTs(uint256[] memory tokenIds) external;
 
-    function execute(uint256 price, BasicOrderParameters calldata order) external;
+    function execute(
+        uint256 price,
+        BasicOrderParameters calldata order
+    ) external;
 
     function getOfferBalanceAddrOrdersLength(
         uint256 price

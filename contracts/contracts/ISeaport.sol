@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import { BasicOrderParameters } from "./ConsiderationStructs.sol";
+import {BasicOrderParameters} from "./ConsiderationStructs.sol";
 
 /**
  * @title SeaportInterface
@@ -30,8 +30,7 @@ interface ISeaport {
      * @return fulfilled A boolean indicating whether the order has been
      *                   successfully fulfilled.
      */
-    function fulfillBasicOrder(BasicOrderParameters calldata parameters)
-        external
-        payable
-        returns (bool fulfilled);
+    function fulfillBasicOrder(
+        BasicOrderParameters calldata parameters
+    ) external payable returns (bool fulfilled);
 }

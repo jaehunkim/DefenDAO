@@ -1,7 +1,11 @@
 {
   "extends": "solhint:recommended",
   "rules": {
+    "constructor-syntax": "error",
     "compiler-version": ["error", "^0.8.0"],
-    "func-visibility": ["warn", { "ignoreConstructors": true }]
+    "func-visibility": ["warn", { "ignoreConstructors": true }],
+    "reason-string": ["warn", { "maxLength": 64 }],
+    "no-empty-blocks": "off",
+    "max-line-length": ["warn", 160]
   }
 }

@@ -5,7 +5,7 @@ import "hardhat/console.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "./IDefenDAO.sol";
-import { ISeaport } from "./ISeaport.sol";
+import {ISeaport} from "./ISeaport.sol";
 
 contract DefenDAO is Ownable, IDefenDAO {
     address public nftAddress;
@@ -103,7 +103,9 @@ contract DefenDAO is Ownable, IDefenDAO {
         address[] memory users,
         uint256[] memory balancesToBurn
     ) internal {
-        mapping(address => uint256) storage balancesRef = userOfferBalances[price];
+        mapping(address => uint256) storage balancesRef = userOfferBalances[
+            price
+        ];
         uint256 burnTotal = 0;
         for (uint256 i = 0; i < users.length; i++) {
             address user = users[i];
@@ -118,10 +120,17 @@ contract DefenDAO is Ownable, IDefenDAO {
     }
 
     // TODO: improve security (e.g. using a vrf solution)
-    function random(uint256 number) public view returns (uint256) {
-        return uint256(
-            keccak256(abi.encodePacked(block.timestamp, block.difficulty, msg.sender))
-        ) % number;
+    function random(uint256 nonInclusiveMax) public view returns (uint256) {
+        return
+            uint256(
+                keccak256(
+                    abi.encodePacked(
+                        block.timestamp,
+                        block.difficulty,
+                        msg.sender
+                    )
+                )
+            ) % nonInclusiveMax;
     }
 
     function isTargetAddressInArray(
@@ -172,36 +181,51 @@ contract DefenDAO is Ownable, IDefenDAO {
         return (selectedAddresses, selectedTimes);
     }
 
-    function execute(uint256 price, BasicOrderParameters calldata order) external override {
-        require(order.considerationToken == address(0x0), "considerationToken must be ETH");
+    function execute(
+        uint256 price,
+        BasicOrderParameters calldata order
+    ) external override {
+        require(
+            order.considerationToken == address(0x0),
+            "considerationToken must be ETH"
+        );
         require(curFloorPrice <= price * offerPriceUnit, "invalid price");
-        // TODO: handle multiple additionalRecipients
-        uint256 orderPrice = order.considerationAmount + order.additionalRecipients[0].amount;
+        uint256 orderPrice = order.considerationAmount;
+        for (uint256 i = 0; i < order.additionalRecipients.length; i++) {
+            orderPrice += order.additionalRecipients[0].amount;
+        }
         require(orderPrice <= price, "nft too expensive");
         require(
-          offerBalanceSum[price] >= EXECUTE_BALANCE_THRESHOLD,
-          "not enough balance at the price"
+            offerBalanceSum[price] >= EXECUTE_BALANCE_THRESHOLD,
+            "not enough balance at the price"
         );
-        mapping(address => uint256) storage balancesRef = userOfferBalances[price];
+        mapping(address => uint256) storage balancesRef = userOfferBalances[
+            price
+        ];
         address[] memory addresses = offerBalanceAddrOrders[price];
         uint256[] memory balances = new uint256[](addresses.length);
         for (uint256 i = 0; i < addresses.length; i++) {
             balances[i] = balancesRef[addresses[i]];
         }
-        (address[] memory selectedAddresses, uint256[] memory selectedTimes) = selectRandomAddresses(
-            addresses,
-            balances,
-            offerBalanceSum[price],
-            EXECUTE_BALANCE_THRESHOLD
-        );
+        (
+            address[] memory selectedAddresses,
+            uint256[] memory selectedTimes
+        ) = selectRandomAddresses(
+                addresses,
+                balances,
+                offerBalanceSum[price],
+                EXECUTE_BALANCE_THRESHOLD
+            );
         burnBalances(price, selectedAddresses, selectedTimes);
-        (address[] memory winner,) = selectRandomAddresses(
+        (address[] memory winner, ) = selectRandomAddresses(
             selectedAddresses,
             selectedTimes,
             price,
             1
         );
-        bool fulfilled = ISeaport(marketplaceAddress).fulfillBasicOrder{value: orderPrice}(order);
+        bool fulfilled = ISeaport(marketplaceAddress).fulfillBasicOrder{
+            value: orderPrice
+        }(order);
         require(fulfilled, "nft purchase failed");
         claimableNFTs[order.considerationIdentifier] = winner[0];
         // TODO: reward msg.sender
