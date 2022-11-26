@@ -27,6 +27,7 @@ describe("DefenDAOFactory", function () {
   const offerPriceUnit = expand(1, 17);
   const offerPrice = expand(9, 17);
   const tokenId = 1;
+  const tokenId2 = 2;
   let deployer: SignerWithAddress;
   let seller: SignerWithAddress;
   let user1: SignerWithAddress;
@@ -82,9 +83,10 @@ describe("DefenDAOFactory", function () {
 
   it("Should mock execute", async function () {
     await mockERC721.connect(seller).mint(tokenId);
-    expect(await mockERC721.ownerOf(tokenId)).to.equal(seller.address);
+    await mockERC721.connect(seller).mint(tokenId2);
 
     await mockERC721.connect(seller).approve(defenDAO.address, tokenId);
+    await mockERC721.connect(seller).approve(defenDAO.address, tokenId2);
 
     const user1OfferCount = 8;
     await user1.sendTransaction({
@@ -100,21 +102,10 @@ describe("DefenDAOFactory", function () {
     });
     await defenDAO.connect(user2).makeOffer(offerPrice, user2OfferCount);
 
-    const allOffers = await defenDAO.getAllOffers(offerPrice);
-    const offerPerNFT = offerPrice.div(offerPriceUnit);
-    const sellerBalance = await ethers.provider.getBalance(seller.address);
     const luckyIndex = 5;
-    const executeTx = await defenDAO
+    await defenDAO
       .connect(seller)
       .mockExecuteWithRecord(offerPrice, tokenId, user1.address, luckyIndex);
-    const txGas = await getTxGas(executeTx);
-    expect(await defenDAO.getAllOffers(offerPrice)).to.equal(
-      allOffers.sub(offerPerNFT)
-    );
-    expect(await ethers.provider.getBalance(seller.address)).to.equal(
-      sellerBalance.add(offerPrice).sub(txGas)
-    );
-    expect(await defenDAO.claimableNFTs(tokenId)).to.equal(user1.address);
 
     const recentSolds = await defenDAOFactory.getRecentSolds();
     expect(recentSolds.length).to.equal(1);
@@ -122,5 +113,19 @@ describe("DefenDAOFactory", function () {
     expect(recentSolds[0].nftId).to.equal(tokenId);
     expect(recentSolds[0].price).to.equal(offerPrice);
     expect(recentSolds[0].claimer).to.equal(user1.address);
+
+    await defenDAO
+      .connect(seller)
+      .mockExecuteWithRecord(offerPrice, tokenId2, user1.address, luckyIndex);
+    const recentSolds2 = await defenDAOFactory.getRecentSolds();
+    expect(recentSolds2.length).to.equal(2);
+    expect(recentSolds2[0].token).to.equal(mockERC721.address);
+    expect(recentSolds2[0].nftId).to.equal(tokenId2);
+    expect(recentSolds2[0].price).to.equal(offerPrice);
+    expect(recentSolds2[0].claimer).to.equal(user1.address);
+    expect(recentSolds2[1].token).to.equal(mockERC721.address);
+    expect(recentSolds2[1].nftId).to.equal(tokenId);
+    expect(recentSolds2[1].price).to.equal(offerPrice);
+    expect(recentSolds2[1].claimer).to.equal(user1.address);
   });
 });
