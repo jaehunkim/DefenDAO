@@ -23,6 +23,7 @@ contract DefenDAO is
     uint256 public curFloorPrice;
     uint256 public offerPriceUnit;
     uint256 public reserve;
+    address public defenDAOFactory;
     uint8 public constant EXECUTE_BALANCE_THRESHOLD = 10;
     mapping(uint256 => mapping(address => uint256)) public userOfferBalances;
     mapping(uint256 => uint256) public offerBalanceSum;
@@ -35,6 +36,7 @@ contract DefenDAO is
         uint256 curFloorPrice_,
         uint256 offerPriceUnit_
     ) external override onlyOwner {
+        defenDAOFactory = msg.sender;
         nftAddress = nftAddress_;
         marketplaceAddress = marketplaceAddress_;
         curFloorPrice = curFloorPrice_;

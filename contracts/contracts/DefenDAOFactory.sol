@@ -1,20 +1,29 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
+import "hardhat/console.sol";
 import {IDefenDAOFactory} from "./IDefenDAOFactory.sol";
 import {IDefenDAO} from "./IDefenDAO.sol";
 import {DefenDAO} from "./DefenDAO.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 contract DefenDAOFactory is IDefenDAOFactory, Ownable {
+    mapping(uint256 => RecentSold) private recentSolds;
+    uint256 private rsBeginIdx;
+    uint256 private rsEndIdx;
+
     mapping(address => address) public getCollections;
     mapping(address => uint256) public getCollectionIndex;
+    mapping(address => address) public collectionToToken;
     address[] public collections;
     string[] public slugs;
 
     event CollectionCreated(address indexed token, address collection);
 
-    constructor() Ownable() {}
+    constructor() Ownable() {
+        rsBeginIdx = 0;
+        rsEndIdx = 0;
+    }
 
     function makeCollection(
         address token_,
@@ -40,6 +49,7 @@ contract DefenDAOFactory is IDefenDAOFactory, Ownable {
         );
         getCollections[token_] = col;
         getCollectionIndex[token_] = collections.length;
+        collectionToToken[col] = token_;
         collections.push(col);
         slugs.push(slug_);
         emit CollectionCreated(token_, col);
@@ -63,5 +73,35 @@ contract DefenDAOFactory is IDefenDAOFactory, Ownable {
 
     function getAllSlugs() external view override returns (string[] memory) {
         return slugs;
+    }
+
+    function getRecentSolds()
+        external
+        view
+        override
+        returns (RecentSold[] memory)
+    {
+        uint256 len = rsEndIdx - rsBeginIdx;
+        RecentSold[] memory rss = new RecentSold[](len);
+        for (uint256 i = rsBeginIdx; i < rsEndIdx; i++) {
+            rss[len - 1 - (i - rsBeginIdx)] = recentSolds[i];
+        }
+        return rss;
+    }
+
+    function recordRecentSold(
+        address token_,
+        uint256 nftId_,
+        uint256 price_,
+        address claimer_
+    ) external override {
+        require(collectionToToken[msg.sender] == token_, "Invalid call");
+        recentSolds[rsEndIdx] = RecentSold(token_, nftId_, price_, claimer_);
+        rsEndIdx++;
+
+        if (rsEndIdx - rsBeginIdx > 10) {
+            delete recentSolds[rsBeginIdx];
+            rsBeginIdx++;
+        }
     }
 }

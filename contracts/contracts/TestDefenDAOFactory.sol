@@ -30,6 +30,7 @@ contract TestDefenDAOFactory is DefenDAOFactory {
         );
         getCollections[token_] = col;
         getCollectionIndex[token_] = collections.length;
+        collectionToToken[col] = token_;
         collections.push(col);
         slugs.push(slug_);
         emit CollectionCreated(token_, col);

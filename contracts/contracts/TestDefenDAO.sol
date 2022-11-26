@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import "hardhat/console.sol";
 import "./DefenDAO.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import {IDefenDAOFactory} from "./IDefenDAOFactory.sol";
 
 contract TestDefenDAO is DefenDAO {
     function mockExecute(
@@ -11,7 +12,7 @@ contract TestDefenDAO is DefenDAO {
         uint256 nftId,
         address claimer,
         uint256 luckyIndex
-    ) external {
+    ) public {
         address payable seller = payable(msg.sender);
         require(offerBalanceSum[price] >= price / offerPriceUnit);
         require(getBalance() >= price);
@@ -40,5 +41,21 @@ contract TestDefenDAO is DefenDAO {
         (bool sent, bytes memory data) = seller.call{value: price}("");
         require(sent, "Failed to send Ether");
         IERC721(nftAddress).transferFrom(msg.sender, address(this), nftId);
+    }
+
+    function mockExecuteWithRecord(
+        uint256 price,
+        uint256 nftId,
+        address claimer,
+        uint256 luckyIndex
+    ) external {
+        mockExecute(price, nftId, claimer, luckyIndex);
+
+        IDefenDAOFactory(defenDAOFactory).recordRecentSold(
+            nftAddress,
+            nftId,
+            price,
+            claimer
+        );
     }
 }
