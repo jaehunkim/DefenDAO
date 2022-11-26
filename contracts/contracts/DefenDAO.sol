@@ -2,15 +2,18 @@
 pragma solidity ^0.8.0;
 
 import "hardhat/console.sol";
-import "./IDefenDAO.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "./IDefenDAO.sol";
+import { ISeaport } from "./ISeaport.sol";
 
 contract DefenDAO is Ownable, IDefenDAO {
     address public nftAddress;
+    address public marketplaceAddress;
     uint256 public curFloorPrice;
     uint256 public offerPriceUnit;
     uint256 public reserve;
+    uint8 public constant EXECUTE_BALANCE_THRESHOLD = 10;
     mapping(uint256 => mapping(address => uint256)) public userOfferBalances;
     mapping(uint256 => uint256) public offerBalanceSum;
     mapping(uint256 => address[]) public offerBalanceAddrOrders;
@@ -18,10 +21,12 @@ contract DefenDAO is Ownable, IDefenDAO {
 
     function initialize(
         address nftAddress_,
+        address marketplaceAddress_,
         uint256 curFloorPrice_,
         uint256 offerPriceUnit_
     ) external override onlyOwner {
         nftAddress = nftAddress_;
+        marketplaceAddress = marketplaceAddress_;
         curFloorPrice = curFloorPrice_;
         offerPriceUnit = offerPriceUnit_;
         // TODO: Should we enforce a ratio between curFloorPrice and offerPriceUnit?
@@ -93,8 +98,113 @@ contract DefenDAO is Ownable, IDefenDAO {
         }
     }
 
-    function execute() external override {
-        // TODO
+    function burnBalances(
+        uint256 price,
+        address[] memory users,
+        uint256[] memory balancesToBurn
+    ) internal {
+        mapping(address => uint256) storage balancesRef = userOfferBalances[price];
+        uint256 burnTotal = 0;
+        for (uint256 i = 0; i < users.length; i++) {
+            address user = users[i];
+            if (user == address(0x0)) continue;
+            balancesRef[user] -= balancesToBurn[i];
+            burnTotal += balancesToBurn[i];
+            if (balancesRef[user] == 0) {
+                delete balancesRef[user];
+            }
+        }
+        offerBalanceSum[price] -= burnTotal;
+    }
+
+    // TODO: improve security (e.g. using a vrf solution)
+    function random(uint256 number) public view returns (uint256) {
+        return uint256(
+            keccak256(abi.encodePacked(block.timestamp, block.difficulty, msg.sender))
+        ) % number;
+    }
+
+    function isTargetAddressInArray(
+        address[] memory addresses,
+        address target
+    ) internal pure returns (uint256) {
+        for (uint256 i = 0; i < addresses.length; i++) {
+            if (addresses[i] == target) return i + 1;
+        }
+        return 0;
+    }
+
+    function selectRandomAddresses(
+        address[] memory addresses,
+        uint256[] memory weights,
+        uint256 weightSum,
+        uint256 numToSelect
+    ) public view returns (address[] memory, uint256[] memory) {
+        address[] memory selectedAddresses = new address[](numToSelect);
+        uint256[] memory selectedTimes = new uint256[](numToSelect);
+        uint256 curIndex = 1; // to distinguish b/w empty and 0 index
+        for (uint256 i = 0; i < numToSelect; i++) {
+            uint256 randomNum = random(weightSum);
+            uint256 pointer = 0;
+            address selected;
+            // TODO: use binary search
+            for (uint256 j = 0; j < addresses.length; j++) {
+                address addr = addresses[j];
+                uint256 weight = weights[j];
+                if (weight == 0) continue;
+                if (pointer <= randomNum && randomNum < pointer + weight) {
+                    selected = addr;
+                    weights[j] -= 1;
+                    break;
+                }
+                pointer += weight;
+            }
+            weightSum -= 1;
+            uint256 index = isTargetAddressInArray(selectedAddresses, selected);
+            if (index > 0) {
+                selectedTimes[index - 1] += 1;
+            } else {
+                selectedAddresses[curIndex - 1] = selected;
+                selectedTimes[curIndex - 1] += 1;
+                curIndex++;
+            }
+        }
+        return (selectedAddresses, selectedTimes);
+    }
+
+    function execute(uint256 price, BasicOrderParameters calldata order) external override {
+        require(order.considerationToken == address(0x0), "considerationToken must be ETH");
+        require(curFloorPrice <= price * offerPriceUnit, "invalid price");
+        // TODO: handle multiple additionalRecipients
+        uint256 orderPrice = order.considerationAmount + order.additionalRecipients[0].amount;
+        require(orderPrice <= price, "nft too expensive");
+        require(
+          offerBalanceSum[price] >= EXECUTE_BALANCE_THRESHOLD,
+          "not enough balance at the price"
+        );
+        mapping(address => uint256) storage balancesRef = userOfferBalances[price];
+        address[] memory addresses = offerBalanceAddrOrders[price];
+        uint256[] memory balances = new uint256[](addresses.length);
+        for (uint256 i = 0; i < addresses.length; i++) {
+            balances[i] = balancesRef[addresses[i]];
+        }
+        (address[] memory selectedAddresses, uint256[] memory selectedTimes) = selectRandomAddresses(
+            addresses,
+            balances,
+            offerBalanceSum[price],
+            EXECUTE_BALANCE_THRESHOLD
+        );
+        burnBalances(price, selectedAddresses, selectedTimes);
+        (address[] memory winner,) = selectRandomAddresses(
+            selectedAddresses,
+            selectedTimes,
+            price,
+            1
+        );
+        bool fulfilled = ISeaport(marketplaceAddress).fulfillBasicOrder{value: orderPrice}(order);
+        require(fulfilled, "nft purchase failed");
+        claimableNFTs[order.considerationIdentifier] = winner[0];
+        // TODO: reward msg.sender
     }
 
     // 자신의 collection별 buy offer

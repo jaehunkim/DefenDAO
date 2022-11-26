@@ -16,6 +16,7 @@ contract DefenDAOFactory is IDefenDAOFactory, Ownable {
 
     function makeCollection(
         address token_,
+        address marketplaceAddress_,
         uint256 curFloorPrice_,
         uint256 offerPriceUnit_
     ) public virtual override onlyOwner {
@@ -28,7 +29,7 @@ contract DefenDAOFactory is IDefenDAOFactory, Ownable {
         assembly {
             col := create2(0, add(bytecode, 32), mload(bytecode), salt)
         }
-        IDefenDAO(col).initialize(token_, curFloorPrice_, offerPriceUnit_);
+        IDefenDAO(col).initialize(token_, marketplaceAddress_, curFloorPrice_, offerPriceUnit_);
         getCollections[token_] = col;
         collections.push(col);
         emit CollectionCreated(token_, col);
