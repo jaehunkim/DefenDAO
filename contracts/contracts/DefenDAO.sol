@@ -235,7 +235,7 @@ contract DefenDAO is
         (address[] memory winner, ) = selectRandomAddresses(
             selectedAddresses,
             selectedTimes,
-            price,
+            EXECUTE_BALANCE_THRESHOLD,
             1
         );
         // Seaport v1.1
