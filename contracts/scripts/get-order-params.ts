@@ -1,10 +1,10 @@
 import { stringifyNestedObject } from "../utils/stringifyNestedObject";
-import { txHashToBasicOrderParams } from "../utils/txHashToBasicOrderParams";
+import { txHashToOrderParams } from "../utils/txHashToOrderParams";
 
 async function main() {
   const txHash =
     "0x953ad455d5a13ee8d7c6e67626fafd77dacb1cddc7320df3332e4e8e7c7db825";
-  const params = await txHashToBasicOrderParams(txHash);
+  const params = await txHashToOrderParams(txHash);
   if (!params) {
     throw Error(`Failed to decode tx data`);
   }

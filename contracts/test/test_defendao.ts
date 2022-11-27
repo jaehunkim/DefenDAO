@@ -9,6 +9,8 @@ import {
   MockERC721,
   MockERC721__factory,
   TestDefenDAO__factory,
+  ISeaport,
+  ISeaport__factory,
 } from "../typechain";
 import {
   SEAPORT_CONTRACT,
@@ -24,6 +26,9 @@ import {
   recipient,
 } from "./data/optimism_success_1155";
 import { ethNumToWeiBn } from "../utils/ethNumToWeiBn";
+import { ethStrToWeiBn } from "../utils/ethStrToWeiBn";
+import { txHashToOrderParams } from "../utils/txHashToOrderParams";
+import { ERC1155__factory } from "../typechain/factories/ERC1155__factory";
 
 async function getTxGas(tx: ContractTransaction): Promise<BigNumber> {
   const txReceipt = await ethers.provider.getTransactionReceipt(tx.hash);
@@ -197,10 +202,7 @@ describe("DefenDAO", function () {
       to: buyer.address,
       value: ethNumToWeiBn(0.1),
     });
-    // const nft = await ethers.getContractAt("MockERC721", NFT_CONTRACT);
-    // await nft
-    //   .connect(buyer)
-    //   .setApprovalForAll("0x1E0049783F008A0085193E00003D00cd54003c71", true);
+    const nft = ERC1155__factory.connect(NFT_CONTRACT, deployer);
     const offerCount = 10;
     await buyer.sendTransaction({
       to: defenDAO.address,
@@ -219,17 +221,20 @@ describe("DefenDAO", function () {
         recipient
       );
     console.log("executeTx:", executeTx);
-    expect(
-      await defenDAO.userOfferBalances(offerPrice, buyer.address)
-    ).to.equal(0);
-    expect(await defenDAO.offerBalanceSum(offerPrice)).to.equal(0);
-    expect(await defenDAO.claimableNFTs(NFT_TOKEN_ID)).to.equal(buyer.address);
-    // expect(await nft.ownerOf(NFT_TOKEN_ID)).to.equal(defenDAO.address);
+    // expect(
+    //   await defenDAO.userOfferBalances(offerPrice, buyer.address)
+    // ).to.equal(0);
+    // expect(await defenDAO.offerBalanceSum(offerPrice)).to.equal(0);
+    // expect(await defenDAO.claimableNFTs(NFT_TOKEN_ID)).to.equal(buyer.address);
+    expect(await nft.balanceOf(defenDAO.address, NFT_TOKEN_ID)).to.equal(1);
   });
 
   it("Should claim NFT", async function () {
     // TODO(liayoo): update this
-    await defenDAO.connect(user1).claimNFTs([tokenId]);
-    expect(await mockERC721.ownerOf(tokenId)).to.equal(user1.address);
+    const claimerAddress = await defenDAO.claimableNFTs([tokenId]);
+    const claimer = await impersonateAddress(claimerAddress);
+    await defenDAO.connect(claimer).claimNFTs([tokenId]);
+    const nft = ERC1155__factory.connect(NFT_CONTRACT, deployer);
+    expect(await nft.balanceOf(claimerAddress, NFT_TOKEN_ID)).to.equal(1);
   });
 });

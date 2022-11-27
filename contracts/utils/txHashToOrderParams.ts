@@ -10,7 +10,7 @@ const opProvider = new ethers.providers.AlchemyProvider(
   process.env.ALCHEMY_API_KEY
 );
 
-export const txHashToBasicOrderParams = async (txHash: string) => {
+export const txHashToOrderParams = async (txHash: string) => {
   console.log(`ALCHEMY_API_KEY: ${process.env.ALCHEMY_API_KEY}`);
   const tx = await opProvider.getTransaction(txHash);
   console.log("tx:", tx);

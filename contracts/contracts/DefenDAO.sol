@@ -3,12 +3,21 @@ pragma solidity ^0.8.0;
 
 import "hardhat/console.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
 import "./IDefenDAO.sol";
 import {ISeaport} from "./ISeaport.sol";
 import {Order, AdvancedOrder, CriteriaResolver} from "./ConsiderationStructs.sol";
 
-contract DefenDAO is Ownable, IDefenDAO {
+contract DefenDAO is
+    Ownable,
+    IDefenDAO,
+    IERC721Receiver,
+    IERC1155Receiver,
+    ERC165
+{
     address public nftAddress;
     address public marketplaceAddress;
     uint256 public curFloorPrice;
@@ -188,9 +197,7 @@ contract DefenDAO is Ownable, IDefenDAO {
         AdvancedOrder calldata order,
         CriteriaResolver[] calldata criteriaResolvers,
         bytes32 fulfillerConduitKey,
-        address recipient
-        // BasicOrderParameters calldata order // Seaport v1.1
-        // Order calldata order // Seaport v1.0 ?
+        address recipient // BasicOrderParameters calldata order // Seaport v1.1 // Order calldata order // Seaport v1.0 ?
     ) external override {
         // require(
         //     order.considerationToken == address(0x0),
@@ -242,7 +249,9 @@ contract DefenDAO is Ownable, IDefenDAO {
             value: price
         }(order, criteriaResolvers, fulfillerConduitKey, recipient);
         require(fulfilled, "nft purchase failed");
-        claimableNFTs[order.parameters.offer[0].identifierOrCriteria] = winner[0];
+        claimableNFTs[order.parameters.offer[0].identifierOrCriteria] = winner[
+            0
+        ];
 
         // Seaport v1.0 ?
         // bool fulfilled = ISeaport(marketplaceAddress).fulfillOrder{
@@ -282,5 +291,43 @@ contract DefenDAO is Ownable, IDefenDAO {
 
     function getBalance() public view override returns (uint256) {
         return address(this).balance;
+    }
+
+    function onERC721Received(
+        address operator,
+        address from,
+        uint256 tokenId,
+        bytes calldata data
+    ) external override returns (bytes4) {
+        return IERC721Receiver.onERC721Received.selector;
+    }
+
+    function onERC1155Received(
+        address operator,
+        address from,
+        uint256 id,
+        uint256 value,
+        bytes calldata data
+    ) external override returns (bytes4) {
+        return IERC1155Receiver.onERC1155Received.selector;
+    }
+
+    function onERC1155BatchReceived(
+        address operator,
+        address from,
+        uint256[] calldata ids,
+        uint256[] calldata values,
+        bytes calldata data
+    ) external override returns (bytes4) {
+        return IERC1155Receiver.onERC1155BatchReceived.selector;
+    }
+
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view override(ERC165, IERC165) returns (bool) {
+        return
+            interfaceId == type(IERC721Receiver).interfaceId ||
+            interfaceId == type(IERC1155Receiver).interfaceId ||
+            super.supportsInterface(interfaceId);
     }
 }
