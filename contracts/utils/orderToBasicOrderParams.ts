@@ -24,12 +24,17 @@ export const orderToBasicOrderParams = (order: any) => {
   } = order.protocol_data.parameters.offer[0];
   const fulfillerConduitKey = offererConduitKey;
   const totalOriginalAdditionalRecipients = 1;
-  const additionalRecipients = [
-    {
-      amount: order.protocol_data.parameters.consideration[1].startAmount,
-      recipient: order.protocol_data.parameters.consideration[1].recipient,
-    },
-  ];
+  const additionalRecipients = [];
+  for (
+    let i = 1;
+    i < order.protocol_data.parameters.consideration.length;
+    i++
+  ) {
+    additionalRecipients.push({
+      amount: order.protocol_data.parameters.consideration[i].startAmount,
+      recipient: order.protocol_data.parameters.consideration[i].recipient,
+    });
+  }
   const signature = order.protocol_data.signature;
 
   const basicOrderParams: BasicOrderParameters = {
@@ -52,6 +57,11 @@ export const orderToBasicOrderParams = (order: any) => {
     additionalRecipients,
     signature,
   };
+
+  console.log(
+    "raw basicOrderParams:",
+    JSON.stringify(basicOrderParams, null, 2)
+  );
 
   console.log(
     "basicOrderParams to etherscan tuple:",

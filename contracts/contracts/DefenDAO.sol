@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "./IDefenDAO.sol";
 import {ISeaport} from "./ISeaport.sol";
+import {Order} from "./ConsiderationStructs.sol";
 
 contract DefenDAO is Ownable, IDefenDAO {
     address public nftAddress;
@@ -36,10 +37,10 @@ contract DefenDAO is Ownable, IDefenDAO {
     function makeOffer(uint256 price, uint256 offerCount) external override {
         uint256 contractEtherBalance = getBalance();
         uint256 totalOfferAmount = getBalance() - reserve;
-        require(
-            totalOfferAmount == offerCount * offerPriceUnit,
-            "incorrect offer count"
-        );
+        // require(
+        //     totalOfferAmount == offerCount * offerPriceUnit,
+        //     "incorrect offer count"
+        // );
         userOfferBalances[price][msg.sender] += offerCount;
         offerBalanceSum[price] += offerCount;
         reserve = contractEtherBalance;
@@ -184,7 +185,8 @@ contract DefenDAO is Ownable, IDefenDAO {
 
     function execute(
         uint256 price,
-        BasicOrderParameters calldata order
+        BasicOrderParameters calldata order // Seaport v1.1
+        // Order calldata order // Seaport v1.0 ?
     ) external override {
         require(
             order.considerationToken == address(0x0),
@@ -193,13 +195,14 @@ contract DefenDAO is Ownable, IDefenDAO {
         require(curFloorPrice <= price * offerPriceUnit, "invalid price");
         uint256 orderPrice = order.considerationAmount;
         for (uint256 i = 0; i < order.additionalRecipients.length; i++) {
-            orderPrice += order.additionalRecipients[0].amount;
+            orderPrice += order.additionalRecipients[i].amount;
         }
         require(orderPrice <= price, "nft too expensive");
         require(
             offerBalanceSum[price] >= EXECUTE_BALANCE_THRESHOLD,
             "not enough balance at the price"
         );
+        // TODO: check order.offerToken == nftAddress
         mapping(address => uint256) storage balancesRef = userOfferBalances[
             price
         ];
@@ -224,11 +227,19 @@ contract DefenDAO is Ownable, IDefenDAO {
             price,
             1
         );
+        // Seaport v1.1
         bool fulfilled = ISeaport(marketplaceAddress).fulfillBasicOrder{
             value: orderPrice
         }(order);
         require(fulfilled, "nft purchase failed");
         claimableNFTs[order.considerationIdentifier] = winner[0];
+
+        // Seaport v1.0 ?
+        // bool fulfilled = ISeaport(marketplaceAddress).fulfillOrder{
+        //     value: price // orderPrice
+        // }(order);
+        // require(fulfilled, "nft purchase failed");
+        // claimableNFTs[order.parameters.consideration[0].identifierOrCriteria] = winner[0];
         // TODO: reward msg.sender
     }
 
