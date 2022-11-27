@@ -124,6 +124,7 @@ contract DefenDAO is
             balancesRef[user] -= balancesToBurn[i];
             burnTotal += balancesToBurn[i];
             if (balancesRef[user] == 0) {
+                // TODO: emit an event
                 delete balancesRef[user];
             }
         }
@@ -194,11 +195,19 @@ contract DefenDAO is
 
     function execute(
         uint256 price,
+        /* Seaport v1.1 - fulfillAdvancedOrder */
         AdvancedOrder calldata order,
         CriteriaResolver[] calldata criteriaResolvers,
         bytes32 fulfillerConduitKey,
-        address recipient // BasicOrderParameters calldata order // Seaport v1.1 // Order calldata order // Seaport v1.0 ?
+        address recipient
+
+        /* Seaport v1.1 - fulfillBasicOrder */
+        // BasicOrderParameters calldata order
+
+        /* Seaport v1.0  - fulfillOrder */
+        // Order calldata order
     ) external override {
+      console.log("in execute...");
         // require(
         //     order.considerationToken == address(0x0),
         //     "considerationToken must be ETH"
@@ -221,6 +230,7 @@ contract DefenDAO is
         uint256[] memory balances = new uint256[](addresses.length);
         for (uint256 i = 0; i < addresses.length; i++) {
             balances[i] = balancesRef[addresses[i]];
+            console.log("address %s: %s", i, addresses[i]);
         }
         (
             address[] memory selectedAddresses,
@@ -231,6 +241,10 @@ contract DefenDAO is
                 offerBalanceSum[price],
                 EXECUTE_BALANCE_THRESHOLD
             );
+        console.log("selected 10 addresses:");
+        for (uint256 i = 0; i < selectedAddresses.length; i++) {
+            console.log("address %s (%s)", selectedAddresses[i], selectedTimes[i]);
+        }
         burnBalances(price, selectedAddresses, selectedTimes);
         (address[] memory winner, ) = selectRandomAddresses(
             selectedAddresses,
@@ -238,13 +252,15 @@ contract DefenDAO is
             EXECUTE_BALANCE_THRESHOLD,
             1
         );
-        // Seaport v1.1
-        // fulfillBasicOrder
+        console.log("selected winner: %s", winner[0]);
+        // Seaport v1.1 - fulfillBasicOrder
         // bool fulfilled = ISeaport(marketplaceAddress).fulfillBasicOrder{
         //     value: orderPrice
         // }(order);
         // require(fulfilled, "nft purchase failed");
         // claimableNFTs[order.considerationIdentifier] = winner[0];
+
+        // Seaport v1.1 - fulfillAdvancedOrder
         bool fulfilled = ISeaport(marketplaceAddress).fulfillAdvancedOrder{
             value: price
         }(order, criteriaResolvers, fulfillerConduitKey, recipient);

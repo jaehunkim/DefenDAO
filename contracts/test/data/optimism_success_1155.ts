@@ -1,5 +1,7 @@
+// https://opensea.io/assets/optimism/0x2f05e799c61b600c65238a9df060caba63db8e78/1
 // https://optimistic.etherscan.io/tx/0x953ad455d5a13ee8d7c6e67626fafd77dacb1cddc7320df3332e4e8e7c7db825
 // block number: 42709462
+// offer token 이 erc721 이 아니라, 1155 임.
 
 import { ethNumToWeiBn } from "../../utils/ethNumToWeiBn";
 

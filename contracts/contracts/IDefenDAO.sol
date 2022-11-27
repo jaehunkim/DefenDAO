@@ -30,12 +30,17 @@ interface IDefenDAO {
 
     function execute(
         uint256 price,
+        /* Seaport v1.1 - fulfillAdvancedOrder */
         AdvancedOrder calldata advancedOrder,
         CriteriaResolver[] calldata criteriaResolvers,
         bytes32 fulfillerConduitKey,
         address recipient
-        // BasicOrderParameters calldata order // Seaport v1.1
-        // Order calldata order // Seaport v1.0 ?
+
+        /* Seaport v1.1 - fulfillBasicOrder */
+        // BasicOrderParameters calldata order
+
+        /* Seaport v1.0 - fulfillOrder */
+        // Order calldata order
     ) external;
 
     function getOfferBalanceAddrOrdersLength(
