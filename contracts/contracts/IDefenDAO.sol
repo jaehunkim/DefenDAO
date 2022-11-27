@@ -1,7 +1,7 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
-import {BasicOrderParameters, Order} from "./ConsiderationStructs.sol";
+import {BasicOrderParameters, Order, AdvancedOrder, CriteriaResolver} from "./ConsiderationStructs.sol";
 
 interface IDefenDAO {
     event MadeOffer(
@@ -30,7 +30,11 @@ interface IDefenDAO {
 
     function execute(
         uint256 price,
-        BasicOrderParameters calldata order // Seaport v1.1
+        AdvancedOrder calldata advancedOrder,
+        CriteriaResolver[] calldata criteriaResolvers,
+        bytes32 fulfillerConduitKey,
+        address recipient
+        // BasicOrderParameters calldata order // Seaport v1.1
         // Order calldata order // Seaport v1.0 ?
     ) external;
 

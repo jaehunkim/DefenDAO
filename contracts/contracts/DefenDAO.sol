@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "./IDefenDAO.sol";
 import {ISeaport} from "./ISeaport.sol";
-import {Order} from "./ConsiderationStructs.sol";
+import {Order, AdvancedOrder, CriteriaResolver} from "./ConsiderationStructs.sol";
 
 contract DefenDAO is Ownable, IDefenDAO {
     address public nftAddress;
@@ -185,23 +185,27 @@ contract DefenDAO is Ownable, IDefenDAO {
 
     function execute(
         uint256 price,
-        BasicOrderParameters calldata order // Seaport v1.1
+        AdvancedOrder calldata order,
+        CriteriaResolver[] calldata criteriaResolvers,
+        bytes32 fulfillerConduitKey,
+        address recipient
+        // BasicOrderParameters calldata order // Seaport v1.1
         // Order calldata order // Seaport v1.0 ?
     ) external override {
-        require(
-            order.considerationToken == address(0x0),
-            "considerationToken must be ETH"
-        );
-        require(curFloorPrice <= price * offerPriceUnit, "invalid price");
-        uint256 orderPrice = order.considerationAmount;
-        for (uint256 i = 0; i < order.additionalRecipients.length; i++) {
-            orderPrice += order.additionalRecipients[i].amount;
-        }
-        require(orderPrice <= price, "nft too expensive");
-        require(
-            offerBalanceSum[price] >= EXECUTE_BALANCE_THRESHOLD,
-            "not enough balance at the price"
-        );
+        // require(
+        //     order.considerationToken == address(0x0),
+        //     "considerationToken must be ETH"
+        // );
+        // require(curFloorPrice <= price * offerPriceUnit, "invalid price");
+        // uint256 orderPrice = order.considerationAmount;
+        // for (uint256 i = 0; i < order.additionalRecipients.length; i++) {
+        //     orderPrice += order.additionalRecipients[i].amount;
+        // }
+        // require(orderPrice <= price, "nft too expensive");
+        // require(
+        //     offerBalanceSum[price] >= EXECUTE_BALANCE_THRESHOLD,
+        //     "not enough balance at the price"
+        // );
         // TODO: check order.offerToken == nftAddress
         mapping(address => uint256) storage balancesRef = userOfferBalances[
             price
@@ -228,18 +232,24 @@ contract DefenDAO is Ownable, IDefenDAO {
             1
         );
         // Seaport v1.1
-        bool fulfilled = ISeaport(marketplaceAddress).fulfillBasicOrder{
-            value: orderPrice
-        }(order);
+        // fulfillBasicOrder
+        // bool fulfilled = ISeaport(marketplaceAddress).fulfillBasicOrder{
+        //     value: orderPrice
+        // }(order);
+        // require(fulfilled, "nft purchase failed");
+        // claimableNFTs[order.considerationIdentifier] = winner[0];
+        bool fulfilled = ISeaport(marketplaceAddress).fulfillAdvancedOrder{
+            value: price
+        }(order, criteriaResolvers, fulfillerConduitKey, recipient);
         require(fulfilled, "nft purchase failed");
-        claimableNFTs[order.considerationIdentifier] = winner[0];
+        claimableNFTs[order.parameters.offer[0].identifierOrCriteria] = winner[0];
 
         // Seaport v1.0 ?
         // bool fulfilled = ISeaport(marketplaceAddress).fulfillOrder{
         //     value: price // orderPrice
         // }(order);
         // require(fulfilled, "nft purchase failed");
-        // claimableNFTs[order.parameters.consideration[0].identifierOrCriteria] = winner[0];
+        // claimableNFTs[order.parameters.offer[0].identifierOrCriteria] = winner[0];
         // TODO: reward msg.sender
     }
 

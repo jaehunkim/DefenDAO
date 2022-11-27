@@ -19,9 +19,11 @@ import {
   offerPriceUnit,
   buyerAddress,
   orderParams,
-} from "./data/optimism_1";
+  criteriaResolvers,
+  fulfillerConduitKey,
+  recipient,
+} from "./data/optimism_success_1155";
 import { ethNumToWeiBn } from "../utils/ethNumToWeiBn";
-
 
 async function getTxGas(tx: ContractTransaction): Promise<BigNumber> {
   const txReceipt = await ethers.provider.getTransactionReceipt(tx.hash);
@@ -188,14 +190,14 @@ describe("DefenDAO", function () {
 
   it("Should execute", async function () {
     const buyer = await impersonateAddress(buyerAddress);
-    // const giver = await impersonateAddress(
-    //   "0x0D0707963952f2fBA59dD06f2b425ace40b492Fe"
-    // );
-    // await giver.sendTransaction({
-    //   to: buyer.address,
-    //   value: ethNumToWeiBn(0.1),
-    // });
-    const nft = await ethers.getContractAt("MockERC721", NFT_CONTRACT);
+    const giver = await impersonateAddress(
+      "0x1D7C6783328C145393e84fb47a7f7C548f5Ee28d"
+    );
+    await giver.sendTransaction({
+      to: buyer.address,
+      value: ethNumToWeiBn(0.1),
+    });
+    // const nft = await ethers.getContractAt("MockERC721", NFT_CONTRACT);
     // await nft
     //   .connect(buyer)
     //   .setApprovalForAll("0x1E0049783F008A0085193E00003D00cd54003c71", true);
@@ -206,17 +208,23 @@ describe("DefenDAO", function () {
     });
     await defenDAO.connect(buyer).makeOffer(offerPrice, offerCount);
     console.log("BLOCK NUMBER:", await ethers.provider.getBlockNumber());
-    console.log("NFT OWNER:", await nft.ownerOf(NFT_TOKEN_ID));
+    // console.log("NFT OWNER:", await nft.ownerOf(NFT_TOKEN_ID));
     const executeTx = await defenDAO
       .connect(buyer)
-      .execute(offerPrice, orderParams);
+      .execute(
+        offerPrice,
+        orderParams,
+        criteriaResolvers,
+        fulfillerConduitKey,
+        recipient
+      );
     console.log("executeTx:", executeTx);
     expect(
       await defenDAO.userOfferBalances(offerPrice, buyer.address)
     ).to.equal(0);
     expect(await defenDAO.offerBalanceSum(offerPrice)).to.equal(0);
     expect(await defenDAO.claimableNFTs(NFT_TOKEN_ID)).to.equal(buyer.address);
-    expect(await nft.ownerOf(NFT_TOKEN_ID)).to.equal(defenDAO.address);
+    // expect(await nft.ownerOf(NFT_TOKEN_ID)).to.equal(defenDAO.address);
   });
 
   it("Should claim NFT", async function () {

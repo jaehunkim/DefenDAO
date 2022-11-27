@@ -3,7 +3,7 @@ import { txHashToBasicOrderParams } from "../utils/txHashToBasicOrderParams";
 
 async function main() {
   const txHash =
-    "0xcb4d318b2ce79255e0be09ad9913c51e71c066fcfeb7b79938a476c91dc4ee59";
+    "0x953ad455d5a13ee8d7c6e67626fafd77dacb1cddc7320df3332e4e8e7c7db825";
   const params = await txHashToBasicOrderParams(txHash);
   if (!params) {
     throw Error(`Failed to decode tx data`);

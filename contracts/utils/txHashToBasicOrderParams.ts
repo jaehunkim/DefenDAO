@@ -3,7 +3,7 @@ import * as dotenv from "dotenv";
 import InputDataDecoder from "ethereum-input-data-decoder";
 import seaportAbi10 from "../abis/seaport10.json";
 import seaportAbi11 from "../abis/seaport11.json";
-import { BasicOrderParameters, Order } from "../types/order";
+import { AdvancedOrder, BasicOrderParameters, Order } from "../types/order";
 
 const opProvider = new ethers.providers.AlchemyProvider(
   "optimism",
@@ -18,10 +18,8 @@ export const txHashToBasicOrderParams = async (txHash: string) => {
   const decoder = new InputDataDecoder(seaportAbi11);
   const result = decoder.decodeData(tx.data);
   console.log("result:", result);
-  let inputs;
   if (result.method === "fulfillBasicOrder") {
-    console.log(result.inputs[0]);
-    inputs = result.inputs[0];
+    const inputs = result.inputs[0];
     const basicOrderParams: BasicOrderParameters = {
       considerationToken: inputs[0],
       considerationIdentifier: inputs[1],
@@ -43,10 +41,9 @@ export const txHashToBasicOrderParams = async (txHash: string) => {
       signature: inputs[17],
     };
     console.log(JSON.stringify(basicOrderParams, null, 2));
-    return basicOrderParams;
+    return { order: basicOrderParams };
   } else if (result.method === "fulfillOrder") {
-    console.log(result.inputs[0]);
-    inputs = result.inputs[0];
+    const inputs = result.inputs[0];
     const order: Order = {
       parameters: {
         offerer: inputs[0][0],
@@ -64,6 +61,44 @@ export const txHashToBasicOrderParams = async (txHash: string) => {
       signature: inputs[1],
     };
     console.log(JSON.stringify(order, null, 2));
-    return order;
+    return { order };
+  } else if (result.method === "fulfillAdvancedOrder") {
+    const orderInputs = result.inputs[0];
+    const order: AdvancedOrder = {
+      parameters: {
+        offerer: orderInputs[0][0],
+        zone: orderInputs[0][1],
+        offer: orderInputs[0][2],
+        consideration: orderInputs[0][3],
+        orderType: orderInputs[0][4],
+        startTime: orderInputs[0][5],
+        endTime: orderInputs[0][6],
+        zoneHash: orderInputs[0][7],
+        salt: orderInputs[0][8],
+        conduitKey: orderInputs[0][9],
+        totalOriginalConsiderationItems: orderInputs[0][10],
+      },
+      numerator: orderInputs[1],
+      denominator: orderInputs[2],
+      signature: orderInputs[3],
+      extraData: orderInputs[4],
+    };
+    const criteriaResolver = [];
+    for (let i = 0; i < result.inputs[1].length; i++) {
+      criteriaResolver.push({
+        orderIndex: result.inputs[1][i][0],
+        side: result.inputs[1][i][1],
+        index: result.inputs[1][i][2],
+        identifier: result.inputs[1][i][3],
+        criteriaProof: result.inputs[1][i][4],
+      });
+    }
+    const fulfillerConduitKey = result.inputs[2];
+    const recipient = result.inputs[3];
+    console.log("order:", JSON.stringify(order, null, 2));
+    console.log("criteriaResolver:", JSON.stringify(criteriaResolver, null, 2));
+    console.log("fulfillerConduitKey:", fulfillerConduitKey);
+    console.log("recipient:", recipient);
+    return { order, criteriaResolver, fulfillerConduitKey, recipient };
   }
 };

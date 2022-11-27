@@ -97,6 +97,43 @@ struct BasicOrderParameters {
     // Total length, excluding dynamic array data: 0x264 (580)
 }
 
+/**
+ * @dev Advanced orders include a numerator (i.e. a fraction to attempt to fill)
+ *      and a denominator (the total size of the order) in addition to the
+ *      signature and other order parameters. It also supports an optional field
+ *      for supplying extra data; this data will be included in a staticcall to
+ *      `isValidOrderIncludingExtraData` on the zone for the order if the order
+ *      type is restricted and the offerer or zone are not the caller.
+ */
+struct AdvancedOrder {
+    OrderParameters parameters;
+    uint120 numerator;
+    uint120 denominator;
+    bytes signature;
+    bytes extraData;
+}
+
+enum Side {
+    // 0: Items that can be spent
+    OFFER,
+    // 1: Items that must be received
+    CONSIDERATION
+}
+
+/**
+ * @dev A criteria resolver specifies an order, side (offer vs. consideration),
+ *      and item index. It then provides a chosen identifier (i.e. tokenId)
+ *      alongside a merkle proof demonstrating the identifier meets the required
+ *      criteria.
+ */
+struct CriteriaResolver {
+    uint256 orderIndex;
+    Side side;
+    uint256 index;
+    uint256 identifier;
+    bytes32[] criteriaProof;
+}
+
 /// ////////////////////////////////////////////////////////////////////////
 // Seaport v1.0?
 /// ////////////////////////////////////////////////////////////////////////

@@ -1,33 +1,4 @@
 /// ////////////////////////////////////////////////////////////////////////
-// Seaport v1.1
-/// ////////////////////////////////////////////////////////////////////////
-export type AdditionalRecipient = {
-  amount: string;
-  recipient: string;
-};
-
-export type BasicOrderParameters = {
-  considerationToken: string;
-  considerationIdentifier: string;
-  considerationAmount: string;
-  offerer: string;
-  zone: string;
-  offerToken: string;
-  offerIdentifier: string;
-  offerAmount: string;
-  basicOrderType: number;
-  startTime: string;
-  endTime: string;
-  zoneHash: string;
-  salt: string;
-  offererConduitKey: string;
-  fulfillerConduitKey: string;
-  totalOriginalAdditionalRecipients: number;
-  additionalRecipients: AdditionalRecipient[];
-  signature: string;
-};
-
-/// ////////////////////////////////////////////////////////////////////////
 // Seaport v1.0?
 /// ////////////////////////////////////////////////////////////////////////
 
@@ -106,4 +77,41 @@ type OrderParameters = {
 export type Order = {
   parameters: OrderParameters;
   signature: string;
+};
+
+/// ////////////////////////////////////////////////////////////////////////
+// Seaport v1.1
+/// ////////////////////////////////////////////////////////////////////////
+export type AdditionalRecipient = {
+  amount: string;
+  recipient: string;
+};
+
+export type BasicOrderParameters = {
+  considerationToken: string;
+  considerationIdentifier: string;
+  considerationAmount: string;
+  offerer: string;
+  zone: string;
+  offerToken: string;
+  offerIdentifier: string;
+  offerAmount: string;
+  basicOrderType: number;
+  startTime: string;
+  endTime: string;
+  zoneHash: string;
+  salt: string;
+  offererConduitKey: string;
+  fulfillerConduitKey: string;
+  totalOriginalAdditionalRecipients: number;
+  additionalRecipients: AdditionalRecipient[];
+  signature: string;
+};
+
+export type AdvancedOrder = {
+  parameters: OrderParameters;
+  numerator: string;
+  denominator: string;
+  signature: string;
+  extraData: string;
 };
