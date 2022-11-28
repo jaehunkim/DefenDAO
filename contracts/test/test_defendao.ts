@@ -263,7 +263,6 @@ describe("DefenDAO", function () {
     const seaport = await ISeaport__factory.connect(SEAPORT_CONTRACT, buyer);
     const tx = await seaport.fulfillBasicOrder(orderParams, {
       value: offerPrice,
-      nonce: 332,
     });
     const receipt = await tx.wait();
     console.log("tx:", tx);
