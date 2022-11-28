@@ -31,13 +31,13 @@ interface IDefenDAO {
     function execute(
         uint256 price,
         /* Seaport v1.1 - fulfillAdvancedOrder */
-        AdvancedOrder calldata advancedOrder,
-        CriteriaResolver[] calldata criteriaResolvers,
-        bytes32 fulfillerConduitKey,
-        address recipient
+        // AdvancedOrder calldata advancedOrder,
+        // CriteriaResolver[] calldata criteriaResolvers,
+        // bytes32 fulfillerConduitKey,
+        // address recipient
 
         /* Seaport v1.1 - fulfillBasicOrder */
-        // BasicOrderParameters calldata order
+        BasicOrderParameters calldata order
 
         /* Seaport v1.0 - fulfillOrder */
         // Order calldata order

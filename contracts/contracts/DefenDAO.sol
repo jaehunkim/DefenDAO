@@ -196,18 +196,16 @@ contract DefenDAO is
     function execute(
         uint256 price,
         /* Seaport v1.1 - fulfillAdvancedOrder */
-        AdvancedOrder calldata order,
-        CriteriaResolver[] calldata criteriaResolvers,
-        bytes32 fulfillerConduitKey,
-        address recipient
+        // AdvancedOrder calldata order,
+        // CriteriaResolver[] calldata criteriaResolvers,
+        // bytes32 fulfillerConduitKey,
+        // address recipient
 
         /* Seaport v1.1 - fulfillBasicOrder */
-        // BasicOrderParameters calldata order
-
-        /* Seaport v1.0  - fulfillOrder */
-        // Order calldata order
-    ) external override {
-      console.log("in execute...");
+        BasicOrderParameters calldata order /* Seaport v1.0  - fulfillOrder */
+    ) external override // Order calldata order
+    {
+        console.log("in execute...");
         // require(
         //     order.considerationToken == address(0x0),
         //     "considerationToken must be ETH"
@@ -243,7 +241,11 @@ contract DefenDAO is
             );
         console.log("selected 10 addresses:");
         for (uint256 i = 0; i < selectedAddresses.length; i++) {
-            console.log("address %s (%s)", selectedAddresses[i], selectedTimes[i]);
+            console.log(
+                "address %s (%s)",
+                selectedAddresses[i],
+                selectedTimes[i]
+            );
         }
         burnBalances(price, selectedAddresses, selectedTimes);
         (address[] memory winner, ) = selectRandomAddresses(
@@ -254,20 +256,20 @@ contract DefenDAO is
         );
         console.log("selected winner: %s", winner[0]);
         // Seaport v1.1 - fulfillBasicOrder
-        // bool fulfilled = ISeaport(marketplaceAddress).fulfillBasicOrder{
-        //     value: orderPrice
-        // }(order);
-        // require(fulfilled, "nft purchase failed");
-        // claimableNFTs[order.considerationIdentifier] = winner[0];
+        bool fulfilled = ISeaport(marketplaceAddress).fulfillBasicOrder{
+            value: price
+        }(order);
+        require(fulfilled, "nft purchase failed");
+        claimableNFTs[order.considerationIdentifier] = winner[0];
 
         // Seaport v1.1 - fulfillAdvancedOrder
-        bool fulfilled = ISeaport(marketplaceAddress).fulfillAdvancedOrder{
-            value: price
-        }(order, criteriaResolvers, fulfillerConduitKey, recipient);
-        require(fulfilled, "nft purchase failed");
-        claimableNFTs[order.parameters.offer[0].identifierOrCriteria] = winner[
-            0
-        ];
+        // bool fulfilled = ISeaport(marketplaceAddress).fulfillAdvancedOrder{
+        //     value: price
+        // }(order, criteriaResolvers, fulfillerConduitKey, recipient);
+        // require(fulfilled, "nft purchase failed");
+        // claimableNFTs[order.parameters.offer[0].identifierOrCriteria] = winner[
+        //     0
+        // ];
 
         // Seaport v1.0 ?
         // bool fulfilled = ISeaport(marketplaceAddress).fulfillOrder{
