@@ -8,6 +8,7 @@ import {DefenDAOFactory} from "./DefenDAOFactory.sol";
 contract TestDefenDAOFactory is DefenDAOFactory {
     function makeCollection(
         address token_,
+        address marketplaceAddress_,
         uint256 curFloorPrice_,
         uint256 offerPriceUnit_
     ) public override onlyOwner {
@@ -20,7 +21,12 @@ contract TestDefenDAOFactory is DefenDAOFactory {
         assembly {
             col := create2(0, add(bytecode, 32), mload(bytecode), salt)
         }
-        TestIDefenDAO(col).initialize(token_, curFloorPrice_, offerPriceUnit_);
+        TestIDefenDAO(col).initialize(
+            token_,
+            marketplaceAddress_,
+            curFloorPrice_,
+            offerPriceUnit_
+        );
         getCollections[token_] = col;
         collections.push(col);
         emit CollectionCreated(token_, col);

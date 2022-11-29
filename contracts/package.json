@@ -15,6 +15,7 @@
   ],
   "devDependencies": {
     "@chainlink/contracts": "^0.5.1",
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.6",
     "@nomiclabs/hardhat-ethers": "^2.0.5",
     "@nomiclabs/hardhat-etherscan": "^3.0.3",
     "@nomiclabs/hardhat-waffle": "^2.0.3",
@@ -52,9 +53,13 @@
   "scripts": {
     "test": "hardhat test",
     "build": "hardhat compile && tsc",
-    "hardhat": "hardhat"
+    "hardhat": "hardhat",
+    "lint:sol": "solhint --config ./.solhint.json --max-warnings 0 \"contracts/**/*.sol\"",
+    "prettier": "prettier --config .prettierrc --write \"**/*.{js,json,md,sol,ts}\""
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^4.8.0"
+    "@openzeppelin/contracts": "^4.8.0",
+    "ethereum-input-data-decoder": "^0.4.2",
+    "prompts": "^2.4.2"
   }
 }
