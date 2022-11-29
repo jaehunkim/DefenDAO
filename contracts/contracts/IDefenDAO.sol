@@ -33,8 +33,7 @@ interface IDefenDAO {
         /* Seaport v1.1 - fulfillAdvancedOrder */
         AdvancedOrder calldata advancedOrder,
         CriteriaResolver[] calldata criteriaResolvers,
-        bytes32 fulfillerConduitKey,
-        address recipient
+        bytes32 fulfillerConduitKey
 
         /* Seaport v1.1 - fulfillBasicOrder */
         // BasicOrderParameters calldata order

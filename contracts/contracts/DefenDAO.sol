@@ -193,21 +193,19 @@ contract DefenDAO is
         return (selectedAddresses, selectedTimes);
     }
 
+    // TODO: Add the following:
+    /* Seaport v1.1 - fulfillBasicOrder */
+    // BasicOrderParameters calldata order
+    /* Seaport v1.0  - fulfillOrder */
+    // Order calldata order
     function execute(
         uint256 price,
         /* Seaport v1.1 - fulfillAdvancedOrder */
         AdvancedOrder calldata order,
         CriteriaResolver[] calldata criteriaResolvers,
-        bytes32 fulfillerConduitKey,
-        address recipient
-
-        /* Seaport v1.1 - fulfillBasicOrder */
-        // BasicOrderParameters calldata order
-
-        /* Seaport v1.0  - fulfillOrder */
-        // Order calldata order
+        bytes32 fulfillerConduitKey
     ) external override {
-      console.log("in execute...");
+        console.log("in execute...");
         // require(
         //     order.considerationToken == address(0x0),
         //     "considerationToken must be ETH"
@@ -243,7 +241,11 @@ contract DefenDAO is
             );
         console.log("selected 10 addresses:");
         for (uint256 i = 0; i < selectedAddresses.length; i++) {
-            console.log("address %s (%s)", selectedAddresses[i], selectedTimes[i]);
+            console.log(
+                "address %s (%s)",
+                selectedAddresses[i],
+                selectedTimes[i]
+            );
         }
         burnBalances(price, selectedAddresses, selectedTimes);
         (address[] memory winner, ) = selectRandomAddresses(
@@ -263,7 +265,7 @@ contract DefenDAO is
         // Seaport v1.1 - fulfillAdvancedOrder
         bool fulfilled = ISeaport(marketplaceAddress).fulfillAdvancedOrder{
             value: price
-        }(order, criteriaResolvers, fulfillerConduitKey, recipient);
+        }(order, criteriaResolvers, fulfillerConduitKey, address(this));
         require(fulfilled, "nft purchase failed");
         claimableNFTs[order.parameters.offer[0].identifierOrCriteria] = winner[
             0

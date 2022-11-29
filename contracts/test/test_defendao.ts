@@ -11,6 +11,8 @@ import {
   TestDefenDAO__factory,
   ISeaport,
   ISeaport__factory,
+  ERC721__factory,
+  ERC721,
 } from "../typechain";
 import {
   SEAPORT_CONTRACT,
@@ -24,10 +26,12 @@ import {
   criteriaResolvers,
   fulfillerConduitKey,
   recipient,
+  txData,
 } from "./data/optimism_success_721";
 import { ethNumToWeiBn } from "../utils/ethNumToWeiBn";
 import { ERC1155__factory } from "../typechain/factories/ERC1155__factory";
 import seaportAbi from "../abis/seaport11.json";
+import { txHashToOrderParams } from "../utils/txHashToOrderParams";
 
 async function getTxGas(tx: ContractTransaction): Promise<BigNumber> {
   const txReceipt = await ethers.provider.getTransactionReceipt(tx.hash);
@@ -44,17 +48,15 @@ describe("DefenDAO", function () {
   let deployer: SignerWithAddress;
   let user1: SignerWithAddress;
   let user2: SignerWithAddress;
-  let mockERC721: MockERC721;
+  let erc721: ERC721;
   let defenDAO: TestDefenDAO;
-  const offerPrice2 = offerPrice.sub(offerPriceUnit);
   it("Should create new DefenDAO", async function () {
     [deployer, user1, user2] = await ethers.getSigners();
-    mockERC721 = await new MockERC721__factory(deployer).deploy(); // TODO(liayoo): replace this with the nft instance
-    await mockERC721.deployed();
+    erc721 = ERC721__factory.connect(NFT_CONTRACT, deployer);
     defenDAO = await new TestDefenDAO__factory(deployer).deploy();
     await defenDAO.deployed();
     await defenDAO.initialize(
-      mockERC721.address,
+      erc721.address,
       SEAPORT_CONTRACT,
       floorPrice,
       offerPriceUnit
@@ -71,18 +73,18 @@ describe("DefenDAO", function () {
       to: defenDAO.address,
       value: offerPriceUnit.mul(user1OfferCount),
     });
-    await defenDAO.connect(user1).makeOffer(offerPrice2, user1OfferCount);
+    await defenDAO.connect(user1).makeOffer(offerPrice, user1OfferCount);
     expect(await defenDAO.getBalance()).to.equal(
       offerPriceUnit.mul(user1OfferCount)
     );
-    expect(await defenDAO.getUserOffers(user1.address, offerPrice2)).to.equal(
+    expect(await defenDAO.getUserOffers(user1.address, offerPrice)).to.equal(
       user1OfferCount
     );
-    expect(await defenDAO.getAllOffers(offerPrice2)).to.equal(user1OfferCount);
-    expect(
-      await defenDAO.getOfferBalanceAddrOrdersLength(offerPrice2)
-    ).to.equal(1);
-    expect(await defenDAO.offerBalanceAddrOrders(offerPrice2, 0)).to.contain(
+    expect(await defenDAO.getAllOffers(offerPrice)).to.equal(user1OfferCount);
+    expect(await defenDAO.getOfferBalanceAddrOrdersLength(offerPrice)).to.equal(
+      1
+    );
+    expect(await defenDAO.offerBalanceAddrOrders(offerPrice, 0)).to.contain(
       user1.address
     );
 
@@ -91,20 +93,20 @@ describe("DefenDAO", function () {
       to: defenDAO.address,
       value: offerPriceUnit.mul(user2OfferCount),
     });
-    await defenDAO.connect(user2).makeOffer(offerPrice2, user2OfferCount);
+    await defenDAO.connect(user2).makeOffer(offerPrice, user2OfferCount);
     expect(await defenDAO.getBalance()).to.equal(
       offerPriceUnit.mul(user1OfferCount + user2OfferCount)
     );
-    expect(await defenDAO.getUserOffers(user2.address, offerPrice2)).to.equal(
+    expect(await defenDAO.getUserOffers(user2.address, offerPrice)).to.equal(
       user2OfferCount
     );
-    expect(await defenDAO.getAllOffers(offerPrice2)).to.equal(
+    expect(await defenDAO.getAllOffers(offerPrice)).to.equal(
       user1OfferCount + user2OfferCount
     );
-    expect(
-      await defenDAO.getOfferBalanceAddrOrdersLength(offerPrice2)
-    ).to.equal(2);
-    expect(await defenDAO.offerBalanceAddrOrders(offerPrice2, 1)).to.contain(
+    expect(await defenDAO.getOfferBalanceAddrOrdersLength(offerPrice)).to.equal(
+      2
+    );
+    expect(await defenDAO.offerBalanceAddrOrders(offerPrice, 1)).to.contain(
       user2.address
     );
   });
@@ -113,16 +115,16 @@ describe("DefenDAO", function () {
     const user1CancelCount = 1;
     const user1OfferCount = await defenDAO.getUserOffers(
       user1.address,
-      offerPrice2
+      offerPrice
     );
     const user1Balance = await user1.getBalance();
     console.log("user1Balance: ", user1Balance);
-    const cancelTx = await defenDAO.connect(user1).cancelOffer(offerPrice2, 1);
+    const cancelTx = await defenDAO.connect(user1).cancelOffer(offerPrice, 1);
     const txGas = await getTxGas(cancelTx);
     expect(await user1.getBalance()).to.equal(
       user1Balance.add(offerPriceUnit.mul(user1CancelCount)).sub(txGas)
     );
-    expect(await defenDAO.getUserOffers(user1.address, offerPrice2)).to.equal(
+    expect(await defenDAO.getUserOffers(user1.address, offerPrice)).to.equal(
       user1OfferCount.sub(user1CancelCount)
     );
   });
@@ -167,68 +169,94 @@ describe("DefenDAO", function () {
   });
 
   it("Should execute", async function () {
-    const buyer = await impersonateAddress(buyerAddress);
-    const giver = await impersonateAddress(
-      "0x1D7C6783328C145393e84fb47a7f7C548f5Ee28d"
+    const seaport = await ethers.getContractAt(seaportAbi, SEAPORT_CONTRACT);
+    const offerer = await impersonateAddress(orderParams.parameters.offerer);
+
+    const latest = await ethers.provider.getBlockNumber();
+    const latestBlock = await ethers.provider.getBlock(latest);
+    expect(latestBlock.timestamp).to.gte(
+      parseInt(orderParams.parameters.startTime)
     );
-    await giver.sendTransaction({
-      to: buyer.address,
-      value: ethNumToWeiBn(0.1),
-    });
-    // const nft = ERC1155__factory.connect(NFT_CONTRACT, deployer);
-    const nft = await ethers.getContractAt("MockERC721", NFT_CONTRACT);
-    const offerCount = 10;
-    await buyer.sendTransaction({
-      to: defenDAO.address,
-      value: offerPriceUnit.mul(offerCount),
-    });
-    await defenDAO.connect(buyer).makeOffer(offerPrice, offerCount);
+    expect(latestBlock.timestamp).to.lt(
+      parseInt(orderParams.parameters.endTime)
+    );
     const balanceSumBefore = await defenDAO.offerBalanceSum(offerPrice);
-    const userBalanceBefore = await defenDAO.userOfferBalances(
+    const user1BalanceBefore = await defenDAO.userOfferBalances(
       offerPrice,
-      buyer.address
+      user1.address
     );
-    console.log("BLOCK NUMBER:", await ethers.provider.getBlockNumber());
-    console.log("NFT OWNER:", await nft.ownerOf(NFT_TOKEN_ID));
+    const user2BalanceBefore = await defenDAO.userOfferBalances(
+      offerPrice,
+      user2.address
+    );
+    console.log("user1BalanceBefore: ", user1BalanceBefore);
+    console.log("user2BalanceBefore: ", user2BalanceBefore);
+
+    // TODO: remove once signature validation issue is resolved
+    const validateTx = await seaport.connect(offerer).validate(
+      [
+        {
+          parameters: orderParams.parameters,
+          signature: orderParams.signature,
+        },
+      ],
+      { gasLimit: 500_000 }
+    );
+    const validateReceipt = await validateTx.wait();
+    console.log("validateTx:", validateTx);
+    console.log("validateReceipt:", validateReceipt);
+
     /* Version 1. defendao 통해서 seaport 함수콜 */
     const executeTx = await defenDAO
-      .connect(buyer)
+      .connect(deployer)
       .execute(
         offerPrice,
         orderParams,
         criteriaResolvers,
         fulfillerConduitKey,
-        recipient,
         {
           gasLimit: 500_000,
         }
       );
     console.log("executeTx:", executeTx);
+    console.log("NFT OWNER:", await erc721.ownerOf(NFT_TOKEN_ID));
     expect(await defenDAO.offerBalanceSum(offerPrice)).to.equal(
       balanceSumBefore.sub(10)
     );
-    expect(
-      await defenDAO.userOfferBalances(offerPrice, buyer.address)
-    ).to.equal(userBalanceBefore.sub(10));
-    expect(await defenDAO.claimableNFTs(NFT_TOKEN_ID)).to.equal(buyer.address);
-    expect(await nft.ownerOf(NFT_TOKEN_ID)).to.equal(defenDAO.address);
-    expect(await nft.balanceOf(defenDAO.address, NFT_TOKEN_ID)).to.equal(1);
+    const user1BalanceAfter = await defenDAO.userOfferBalances(
+      offerPrice,
+      user1.address
+    );
+    const user2BalanceAfter = await defenDAO.userOfferBalances(
+      offerPrice,
+      user2.address
+    );
+    console.log("user1BalanceAfter: ", user1BalanceAfter);
+    console.log("user2BalanceAfter: ", user2BalanceAfter);
+    console.log(
+      "await erc721.ownerOf(NFT_TOKEN_ID): ",
+      await erc721.ownerOf(NFT_TOKEN_ID)
+    );
+    const claimerAddress = await defenDAO.claimableNFTs(NFT_TOKEN_ID);
+    expect(claimerAddress).to.be.oneOf([user1.address, user2.address]);
+    expect(await erc721.ownerOf(NFT_TOKEN_ID)).to.equal(defenDAO.address);
 
     /* Version 2. raw tx data 전송 */
+    // const buyer = await impersonateAddress(buyerAddress);
     // const tx = await buyer.sendTransaction({
     //   to: SEAPORT_CONTRACT,
-    //   data: "0xe7acab24000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000005a00000007b02230091a7ed01230072f7006a004d60a8d4e71d599b8104250f0000000000000000000000000000fad445029d2ba1fab6d5d3225e0f52b3ea8d812f00000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000046000000000000000000000000000000000000000000000000000000000000004e0000000000000000000000000601984a2a5a910981fb8d60c4d8c00d5d49093b600000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000160000000000000000000000000000000000000000000000000000000000000022000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000063331aaa00000000000000000000000000000000000000000000000000000000635aa67e0000000000000000000000000000000000000000000000000000000000000000360c6ebe00000000000000000000000000000000000000000fddbc404d44c58c0000007b02230091a7ed01230072f7006a004d60a8d4e71d599b8104250f0000000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002000000000000000000000000672f466b13ee1856c32f8bd956730d8eff28bf160000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000376c1e0a7f000000000000000000000000000000000000000000000000000000376c1e0a7f000000000000000000000000000601984a2a5a910981fb8d60c4d8c00d5d49093b6000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000016bcc41e9000000000000000000000000000000000000000000000000000000016bcc41e90000000000000000000000000000000a26b00c1f0df003000390027140000faa7190000000000000000000000000000000000000000000000000000000000000041049f4c88299c200e49d4d3c35ccaa2efc58cd64064ce4c173bbfe9b89aff58ea6215bd49b799caa4178b368493715623d1784c2d91fb1030578024fe3242b81c1b000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-    //   gasLimit: 130_000,
-    //   value: ethNumToWeiBn(0.001),
+    //   data: txData,
+    //   gasLimit: 300_000,
+    //   value: offerPrice,
     // });
     // const receipt = await tx.wait();
     // console.log("tx:", tx);
     // console.log("receipt:", receipt);
+    // console.log("NFT OWNER:", await erc721.ownerOf(NFT_TOKEN_ID));
 
     /* Version 3. seaport contract 에 직접 전송 */
-    // const seaport = await ethers.getContractAt(seaportAbi, SEAPORT_CONTRACT);
     // const tx = await seaport
-    //   .connect(buyer)
+    //   .connect(deployer)
     //   .fulfillAdvancedOrder(
     //     orderParams,
     //     criteriaResolvers,
@@ -236,20 +264,19 @@ describe("DefenDAO", function () {
     //     recipient,
     //     {
     //       value: offerPrice,
-    //       // gasLimit: 500_000,
+    //       gasLimit: 500_000,
     //     }
     //   );
     // const receipt = await tx.wait();
     // console.log("tx:", tx);
     // console.log("receipt:", receipt);
+    // expect(await erc721.ownerOf(NFT_TOKEN_ID)).to.equal(recipient);
   });
 
-  // it("Should claim NFT", async function () {
-  //   // TODO(liayoo): update this
-  //   const claimerAddress = await defenDAO.claimableNFTs([tokenId]);
-  //   const claimer = await impersonateAddress(claimerAddress);
-  //   await defenDAO.connect(claimer).claimNFTs([tokenId]);
-  //   const nft = ERC1155__factory.connect(NFT_CONTRACT, deployer);
-  //   expect(await nft.balanceOf(claimerAddress, NFT_TOKEN_ID)).to.equal(1);
-  // });
+  it("Should claim NFT", async function () {
+    const claimerAddress = await defenDAO.claimableNFTs([NFT_TOKEN_ID]);
+    const claimer = await impersonateAddress(claimerAddress);
+    await defenDAO.connect(claimer).claimNFTs([NFT_TOKEN_ID]);
+    expect(await erc721.ownerOf(NFT_TOKEN_ID)).to.equal(claimerAddress);
+  });
 });
