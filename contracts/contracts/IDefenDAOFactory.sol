@@ -7,6 +7,7 @@ interface IDefenDAOFactory {
         uint256 nftId;
         uint256 price;
         address claimer;
+        address defenDAO;
     }
 
     /// functions
