@@ -30,7 +30,7 @@ async function main() {
   await defenDAOFactory.makeCollection(
     "0x672f466B13eE1856C32f8bD956730D8Eff28bF16",
     SEAPORT_CONTRACT,
-    "gm-optimists",
+    "gm-optimism",
     floorPrice,
     offerPriceUnit
   );
