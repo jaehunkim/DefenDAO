@@ -41,6 +41,7 @@ const config: HardhatUserConfig = {
         // url: `https://eth-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
         // blockNumber: 16065780,
       },
+      chainId: 1337,
     },
     ropsten: {
       url: process.env.ROPSTEN_URL || "",

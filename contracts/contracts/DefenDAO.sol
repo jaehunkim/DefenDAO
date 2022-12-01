@@ -46,10 +46,12 @@ contract DefenDAO is
 
     // TODO: need to handle transferring eth and making an offer atomically
     function makeOffer(uint256 price, uint256 offerCount) external override {
+        console.log(price);
+        console.log(offerCount);
         uint256 contractEtherBalance = getBalance();
         uint256 totalOfferAmount = getBalance() - reserve;
         require(
-            totalOfferAmount == offerCount * price,
+            totalOfferAmount >= offerCount * price,
             "incorrect offer count"
         );
         userOfferBalances[price][msg.sender] += offerCount;
