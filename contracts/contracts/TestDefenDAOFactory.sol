@@ -9,6 +9,7 @@ contract TestDefenDAOFactory is DefenDAOFactory {
     function makeCollection(
         address token_,
         address marketplaceAddress_,
+        string calldata slug_,
         uint256 curFloorPrice_,
         uint256 offerPriceUnit_
     ) public override onlyOwner {
@@ -28,7 +29,27 @@ contract TestDefenDAOFactory is DefenDAOFactory {
             offerPriceUnit_
         );
         getCollections[token_] = col;
+        getCollectionIndex[token_] = collections.length;
+        collectionToToken[col] = token_;
         collections.push(col);
+        slugs.push(slug_);
         emit CollectionCreated(token_, col);
+    }
+
+    function mockRecordRecentSold(
+        address token_,
+        uint256 nftId_,
+        uint256 price_,
+        address claimer_,
+        string calldata tokenName_,
+        string calldata image_
+    ) public onlyOwner {
+        recentSolds[rsEndIdx] = RecentSold(token_, nftId_, price_, claimer_, getCollections[token_], tokenName_, image_);
+        rsEndIdx++;
+
+        if (rsEndIdx - rsBeginIdx > 10) {
+            delete recentSolds[rsBeginIdx];
+            rsBeginIdx++;
+        }
     }
 }
