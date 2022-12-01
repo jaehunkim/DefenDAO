@@ -96,7 +96,7 @@ contract DefenDAOFactory is IDefenDAOFactory, Ownable {
         address claimer_
     ) external override {
         require(collectionToToken[msg.sender] == token_, "Invalid call");
-        recentSolds[rsEndIdx] = RecentSold(token_, nftId_, price_, claimer_, msg.sender);
+        recentSolds[rsEndIdx] = RecentSold(token_, nftId_, price_, claimer_, msg.sender, "", "");
         rsEndIdx++;
 
         if (rsEndIdx - rsBeginIdx > 10) {

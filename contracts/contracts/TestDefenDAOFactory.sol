@@ -40,9 +40,11 @@ contract TestDefenDAOFactory is DefenDAOFactory {
         address token_,
         uint256 nftId_,
         uint256 price_,
-        address claimer_
+        address claimer_,
+        string calldata tokenName_,
+        string calldata image_
     ) public onlyOwner {
-        recentSolds[rsEndIdx] = RecentSold(token_, nftId_, price_, claimer_, getCollections[token_]);
+        recentSolds[rsEndIdx] = RecentSold(token_, nftId_, price_, claimer_, getCollections[token_], tokenName_, image_);
         rsEndIdx++;
 
         if (rsEndIdx - rsBeginIdx > 10) {

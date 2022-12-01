@@ -10,9 +10,10 @@ import {
   TestDefenDAOFactory__factory,
   TestDefenDAO__factory,
 } from "../typechain";
+import { SEAPORT_CONTRACT } from "../test/data/optimism_success_721";
 
-const floorPrice = ethers.utils.parseEther("1");
-const offerPriceUnit = ethers.utils.parseEther("0.1");
+const floorPrice = ethers.utils.parseEther("0.0089");
+const offerPriceUnit = ethers.utils.parseEther("0.001");
 
 async function main() {
   const [deployer, seller, user1, user2] = await ethers.getSigners();
@@ -27,8 +28,9 @@ async function main() {
   console.log("DefenDAOFactory Deployed \t\t ", defenDAOFactory.address);
 
   await defenDAOFactory.makeCollection(
-    "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D",
-    "bored-ape-yocht-ciub-officiai",
+    "0x0110Bb5739a6F82eafc748418e572Fc67d854a0F",
+    SEAPORT_CONTRACT,
+    "early-optimists",
     floorPrice,
     offerPriceUnit
   );
@@ -44,59 +46,120 @@ async function main() {
   );
   console.log("DefenDAO collection created \t\t ", defenDAO.address);
 
-  const user1OfferCount = 8;
-  const offerPrice = ethers.utils.parseEther("0.9");
-  await user1.sendTransaction({
-    to: defenDAO.address,
-    value: offerPriceUnit.mul(user1OfferCount),
-  });
-  await defenDAO.connect(user1).makeOffer(offerPrice, user1OfferCount);
+  // const user1OfferCount = 8;
+  // const offerPrice = ethers.utils.parseEther("0.008");
+  // await user1.sendTransaction({
+  //   to: defenDAO.address,
+  //   value: offerPriceUnit.mul(user1OfferCount),
+  // });
+  // await defenDAO.connect(user1).makeOffer(offerPrice, user1OfferCount);
 
-  const user2OfferCount = 12;
-  await user2.sendTransaction({
-    to: defenDAO.address,
-    value: offerPriceUnit.mul(user2OfferCount),
-  });
-  await defenDAO.connect(user2).makeOffer(offerPrice, user2OfferCount);
+  // const user2OfferCount = 12;
+  // await user2.sendTransaction({
+  //   to: defenDAO.address,
+  //   value: offerPriceUnit.mul(user2OfferCount),
+  // });
+  // await defenDAO.connect(user2).makeOffer(offerPrice, user2OfferCount);
+
+  const user1Offers = [
+    { price: "0.003", count: 20 },
+    { price: "0.005", count: 13 },
+    { price: "0.008", count: 7 },
+  ];
+  const user2Offers = [
+    { price: "0.001", count: 12 },
+    { price: "0.002", count: 18 },
+    { price: "0.003", count: 23 },
+    { price: "0.004", count: 50 },
+    { price: "0.005", count: 40 },
+    { price: "0.006", count: 21 },
+    { price: "0.007", count: 15 },
+    { price: "0.008", count: 5 },
+  ];
+
+  console.log("User1", user1.address);
+  for (const user1Offer of user1Offers) {
+    const price = ethers.utils.parseEther(user1Offer.price);
+    const count = user1Offer.count;
+    await user1.sendTransaction({
+      to: defenDAO.address,
+      value: price.mul(count),
+    });
+
+    await defenDAO.connect(user1).makeOffer(price, count);
+  }
+
+  for (const user2Offer of user2Offers) {
+    const price = ethers.utils.parseEther(user2Offer.price);
+    const count = user2Offer.count;
+    await user2.sendTransaction({
+      to: defenDAO.address,
+      value: price.mul(count),
+    });
+
+    await defenDAO
+      .connect(user2)
+      .makeOffer(ethers.utils.parseEther(user2Offer.price), user2Offer.count);
+  }
 
   await defenDAOFactory.makeCollection(
-    "0xED5AF388653567Af2F388E6224dC7C4b3241C544",
-    "azuki",
-    ethers.utils.parseEther("10"),
-    ethers.utils.parseEther("0.5")
+    "0xfA14e1157F35E1dAD95dC3F822A9d18c40e360E2",
+    SEAPORT_CONTRACT,
+    "optimism-quests",
+    ethers.utils.parseEther("0.0005"),
+    ethers.utils.parseEther("0.00005")
   );
 
   await defenDAOFactory.makeCollection(
-    "0x477F885f6333317f5B2810ECc8AfadC7d5b69dD2",
-    "yugiyn-official",
-    ethers.utils.parseEther("0.3"),
-    ethers.utils.parseEther("0.05")
+    "0x74a002d13f5f8af7f9a971f006b9a46c9b31dabd",
+    SEAPORT_CONTRACT,
+    "rabbithole-l2-explorer",
+    ethers.utils.parseEther("0.0005"),
+    ethers.utils.parseEther("0.00005")
   );
 
   await defenDAOFactory.makeCollection(
-    "0x8a90CAb2b38dba80c64b7734e58Ee1dB38B8992e",
-    "doodles-official",
-    ethers.utils.parseEther("6.7"),
-    ethers.utils.parseEther("0.5")
+    "0x81b30ff521D1fEB67EDE32db726D95714eb00637",
+    SEAPORT_CONTRACT,
+    "optimistic-explorer",
+    ethers.utils.parseEther("0.0003"),
+    ethers.utils.parseEther("0.00005")
   );
 
   await defenDAOFactory.mockRecordRecentSold(
-    "0xED5AF388653567Af2F388E6224dC7C4b3241C544",
-    300,
-    ethers.utils.parseEther("9.5"),
-    user1.address
+    "0x0110Bb5739a6F82eafc748418e572Fc67d854a0F",
+    1761,
+    ethers.utils.parseEther("0.0089"),
+    user1.address,
+    "Early Optimists #1761",
+    "https://i.seadn.io/gae/eFYickzmV6OdT64TLARFnUvYtmZ2Tthg_ACbplbZVVg-aYv9-SdwlQ1HxYwBRDeTF0ExLskLCogDHiMF1qyzZPvuOxDS-qsHHApfsA"
   );
+
   await defenDAOFactory.mockRecordRecentSold(
-    "0x477F885f6333317f5B2810ECc8AfadC7d5b69dD2",
-    200,
-    ethers.utils.parseEther("0.25"),
-    user1.address
+    "0x74a002d13f5f8af7f9a971f006b9a46c9b31dabd",
+    210941,
+    ethers.utils.parseEther("0.0005"),
+    user1.address,
+    "Rabbithole L2 Explorer #210941",
+    "https://i.seadn.io/gae/EcXaMCNMCZlKGdzgbVoBQHKGapeWpJky9QT56wAoycm3JS0ZcI-5_oorqiuSO-ORHTM5qvuPlgiQ--nyDvU-_W_GybVI9fVJpNYFijo"
   );
+
   await defenDAOFactory.mockRecordRecentSold(
-    "0x8a90CAb2b38dba80c64b7734e58Ee1dB38B8992e",
-    100,
-    ethers.utils.parseEther("6.5"),
-    user2.address
+    "0x81b30ff521D1fEB67EDE32db726D95714eb00637",
+    77329,
+    ethers.utils.parseEther("0.0003"),
+    user2.address,
+    "Optimistic Explorer #77329",
+    "https://i.seadn.io/gae/I7Mlo0iMHlqdf6ZE2x116hLR4CfKwaD1k_yAIGVQmk4DfqV4eIKV0m6VgyF0hfDQsr-3f2fEV9oBoKwWMFottYu55jCP798mGwQ9ug"
+  );
+
+  await defenDAOFactory.mockRecordRecentSold(
+    "0x81b30ff521D1fEB67EDE32db726D95714eb00637",
+    81372,
+    ethers.utils.parseEther("0.00035"),
+    user2.address,
+    "Optimistic Explorer #81372",
+    "https://i.seadn.io/gae/I7Mlo0iMHlqdf6ZE2x116hLR4CfKwaD1k_yAIGVQmk4DfqV4eIKV0m6VgyF0hfDQsr-3f2fEV9oBoKwWMFottYu55jCP798mGwQ9ug"
   );
 
   const recentSolds = await defenDAOFactory.getRecentSolds();

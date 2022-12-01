@@ -49,7 +49,7 @@ contract DefenDAO is
         uint256 contractEtherBalance = getBalance();
         uint256 totalOfferAmount = getBalance() - reserve;
         require(
-            totalOfferAmount == offerCount * offerPriceUnit,
+            totalOfferAmount == offerCount * price,
             "incorrect offer count"
         );
         userOfferBalances[price][msg.sender] += offerCount;

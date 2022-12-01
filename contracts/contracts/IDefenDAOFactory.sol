@@ -8,6 +8,8 @@ interface IDefenDAOFactory {
         uint256 price;
         address claimer;
         address defenDAO;
+        string tokenName;
+        string tokenImage;
     }
 
     /// functions
