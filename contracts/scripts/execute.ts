@@ -24,10 +24,10 @@ import {
   fulfillerConduitKey,
   recipient,
   txData,
-} from "./data/optimism_success_721";
+} from "../test/data/optimism_success_721";
 import seaportAbi from "../abis/seaport11.json";
 
-const collectionAddr = "0x3aE88bed7Ee6D8be8631e687F7AC217FBc44C4b2";
+const collectionAddr = "0xFd84FDF38D88d1449A906BFF0016740AfAC8A95A";
 
 const impersonateAddress = (address: string) => {
   return ethers.getImpersonatedSigner(address);
@@ -56,6 +56,17 @@ async function main() {
   const validateReceipt = await validateTx.wait();
   console.log("validateTx:", validateTx);
   console.log("validateReceipt:", validateReceipt);
+
+  const user1BalanceBefore = await defenDAO.userOfferBalances(
+    offerPrice,
+    user1.address
+  );
+  const user2BalanceBefore = await defenDAO.userOfferBalances(
+    offerPrice,
+    user2.address
+  );
+  console.log("user1BalanceBefore: ", user1BalanceBefore);
+  console.log("user2BalanceBefore: ", user2BalanceBefore);
 
   const executeTx = await defenDAO
     .connect(deployer)

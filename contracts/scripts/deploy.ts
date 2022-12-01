@@ -12,8 +12,8 @@ import {
 } from "../typechain";
 import { SEAPORT_CONTRACT } from "../test/data/optimism_success_721";
 
-const floorPrice = ethers.utils.parseEther("0.0089");
-const offerPriceUnit = ethers.utils.parseEther("0.001");
+const floorPrice = ethers.utils.parseEther("0.0011");
+const offerPriceUnit = ethers.utils.parseEther("0.0001");
 
 async function main() {
   const [deployer, seller, user1, user2] = await ethers.getSigners();
@@ -28,9 +28,9 @@ async function main() {
   console.log("DefenDAOFactory Deployed \t\t ", defenDAOFactory.address);
 
   await defenDAOFactory.makeCollection(
-    "0x0110Bb5739a6F82eafc748418e572Fc67d854a0F",
+    "0x672f466B13eE1856C32f8bD956730D8Eff28bF16",
     SEAPORT_CONTRACT,
-    "early-optimists",
+    "gm-optimists",
     floorPrice,
     offerPriceUnit
   );
@@ -62,19 +62,19 @@ async function main() {
   // await defenDAO.connect(user2).makeOffer(offerPrice, user2OfferCount);
 
   const user1Offers = [
-    { price: "0.003", count: 20 },
-    { price: "0.005", count: 13 },
-    { price: "0.008", count: 7 },
+    { price: "0.0005", count: 20 },
+    { price: "0.0007", count: 13 },
+    { price: "0.001", count: 17 },
   ];
   const user2Offers = [
-    { price: "0.001", count: 12 },
-    { price: "0.002", count: 18 },
-    { price: "0.003", count: 23 },
-    { price: "0.004", count: 50 },
-    { price: "0.005", count: 40 },
-    { price: "0.006", count: 21 },
-    { price: "0.007", count: 15 },
-    { price: "0.008", count: 5 },
+    { price: "0.0002", count: 18 },
+    { price: "0.0003", count: 23 },
+    { price: "0.0004", count: 50 },
+    { price: "0.0005", count: 40 },
+    { price: "0.0006", count: 21 },
+    { price: "0.0007", count: 15 },
+    { price: "0.0008", count: 5 },
+    { price: "0.0009", count: 12 },
   ];
 
   console.log("User1", user1.address);
@@ -101,6 +101,14 @@ async function main() {
       .connect(user2)
       .makeOffer(ethers.utils.parseEther(user2Offer.price), user2Offer.count);
   }
+
+  await defenDAOFactory.makeCollection(
+    "0x0110Bb5739a6F82eafc748418e572Fc67d854a0F",
+    SEAPORT_CONTRACT,
+    "early-optimists",
+    floorPrice,
+    offerPriceUnit
+  );
 
   await defenDAOFactory.makeCollection(
     "0xfA14e1157F35E1dAD95dC3F822A9d18c40e360E2",
