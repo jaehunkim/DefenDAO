@@ -42,10 +42,7 @@ async function main() {
   const events = await defenDAOFactory.queryFilter(filter, blockNumBefore - 1);
   const lastevent = events[events.length - 1];
   const collectionAddr = lastevent.args.collection;
-  const defenDAO = await TestDefenDAO__factory.connect(
-    collectionAddr,
-    deployer
-  );
+  const defenDAO = TestDefenDAO__factory.connect(collectionAddr, deployer);
   console.log("DefenDAO collection created \t\t ", defenDAO.address);
 
   // const user1OfferCount = 8;
@@ -104,37 +101,60 @@ async function main() {
     await defenDAO.connect(user2).makeOffer(price, count);
   }
 
-  await defenDAOFactory.makeCollection(
-    "0x0110Bb5739a6F82eafc748418e572Fc67d854a0F",
-    SEAPORT_CONTRACT,
-    "early-optimists",
-    floorPrice,
-    offerPriceUnit
-  );
+  const defenDAOInfos = [
+    {
+      address: "0x0110Bb5739a6F82eafc748418e572Fc67d854a0F",
+      slug: "early-optimists",
+      floor: ethers.utils.parseEther("0.008"),
+      unit: ethers.utils.parseEther("0.0008"),
+      dummyCount: 200,
+    },
+    {
+      address: "0xfA14e1157F35E1dAD95dC3F822A9d18c40e360E2",
+      slug: "optimism-quests",
+      floor: ethers.utils.parseEther("0.0005"),
+      unit: ethers.utils.parseEther("0.00005"),
+      dummyCount: 180,
+    },
+    {
+      address: "0x74a002d13f5f8af7f9a971f006b9a46c9b31dabd",
+      slug: "rabbithole-l2-explorer",
+      floor: ethers.utils.parseEther("0.0005"),
+      unit: ethers.utils.parseEther("0.00005"),
+      dummyCount: 170,
+    },
+    {
+      address: "0x81b30ff521D1fEB67EDE32db726D95714eb00637",
+      slug: "optimistic-explorer",
+      floor: ethers.utils.parseEther("0.0005"),
+      unit: ethers.utils.parseEther("0.00005"),
+      dummyCount: 150,
+    },
+  ];
 
-  await defenDAOFactory.makeCollection(
-    "0xfA14e1157F35E1dAD95dC3F822A9d18c40e360E2",
-    SEAPORT_CONTRACT,
-    "optimism-quests",
-    ethers.utils.parseEther("0.0005"),
-    ethers.utils.parseEther("0.00005")
-  );
+  for (const info of defenDAOInfos) {
+    await defenDAOFactory.makeCollection(
+      info.address,
+      SEAPORT_CONTRACT,
+      info.slug,
+      info.floor,
+      info.unit
+    );
 
-  await defenDAOFactory.makeCollection(
-    "0x74a002d13f5f8af7f9a971f006b9a46c9b31dabd",
-    SEAPORT_CONTRACT,
-    "rabbithole-l2-explorer",
-    ethers.utils.parseEther("0.0005"),
-    ethers.utils.parseEther("0.00005")
-  );
+    const events = await defenDAOFactory.queryFilter(filter);
+    const lastevent = events[events.length - 1];
+    const newAddr = lastevent.args.collection;
+    const daoContract = TestDefenDAO__factory.connect(newAddr, user2);
 
-  await defenDAOFactory.makeCollection(
-    "0x81b30ff521D1fEB67EDE32db726D95714eb00637",
-    SEAPORT_CONTRACT,
-    "optimistic-explorer",
-    ethers.utils.parseEther("0.0003"),
-    ethers.utils.parseEther("0.00005")
-  );
+    const price = info.unit.mul(3);
+    const count = info.dummyCount;
+    await user2.sendTransaction({
+      to: daoContract.address,
+      value: price.mul(count).div(10),
+    });
+
+    await daoContract.makeOffer(price, count);
+  }
 
   await defenDAOFactory.mockRecordRecentSold(
     "0x0110Bb5739a6F82eafc748418e572Fc67d854a0F",

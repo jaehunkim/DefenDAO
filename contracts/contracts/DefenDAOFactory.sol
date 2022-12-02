@@ -14,12 +14,9 @@ contract DefenDAOFactory is IDefenDAOFactory, Ownable {
 
     // key : nft address
     mapping(address => address) public getCollections;
-    mapping(address => uint256) public getCollectionIndex;
     // key : collection address
+    mapping(address => uint256) public collectionToIndex;
     mapping(address => address) public collectionToToken;
-    mapping(address => cInfo) public collectionInfo;
-    address[] public collections;
-    string[] public slugs;
     cInfo[] public infos;
 
     event CollectionCreated(address indexed token, address collection);
@@ -52,10 +49,8 @@ contract DefenDAOFactory is IDefenDAOFactory, Ownable {
             offerPriceUnit_
         );
         getCollections[token_] = col;
-        getCollectionIndex[token_] = collections.length;
+        collectionToIndex[col] = infos.length;
         collectionToToken[col] = token_;
-        collections.push(col);
-        slugs.push(slug_);
         infos.push(cInfo(token_, col, slug_, 0, offerPriceUnit_));
         emit CollectionCreated(token_, col);
     }
@@ -90,7 +85,7 @@ contract DefenDAOFactory is IDefenDAOFactory, Ownable {
         uint256 ticketCount
     ) external override {
         require(collectionToToken[msg.sender] != address(0), "Invalid call");
-        uint256 index = getCollectionIndex[msg.sender];
+        uint256 index = collectionToIndex[msg.sender];
         if (isPlus) {
             infos[index].totalTickets += ticketCount;
         } else {
