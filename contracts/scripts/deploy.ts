@@ -66,7 +66,7 @@ async function main() {
   const user1Offers = [
     { price: "0.00125", count: 20 },
     { price: "0.0075", count: 15 },
-    { price: "0.0125", count: 17 },
+    // { price: "0.0125", count: 17 },
   ];
   const user2Offers = [
     { price: "0.00125", count: 18 },
@@ -78,7 +78,7 @@ async function main() {
     { price: "0.00875", count: 5 },
     { price: "0.01", count: 80 },
     { price: "0.01125", count: 18 },
-    { price: "0.0125", count: 12 },
+    // { price: "0.0125", count: 12 },
   ];
 
   console.log("User1", user1.address);
@@ -152,6 +152,33 @@ async function main() {
     user1.address,
     "Chad #8965",
     "https://i.seadn.io/gae/A45gUm0-AVTsjHaeD6rztReTBLTAmJU-xCp2FHGRLf4aJ3rzF8MBOhLTtabeK9L60l36W5L1idsOmUSf7J8NgXbrZY6mc1GQ8hkr"
+  );
+
+  await defenDAOFactory.mockRecordRecentSold(
+    "0x9b9f542456ad12796ccb8eb6644f29e3314e68e1",
+    8985,
+    ethers.utils.parseEther("0.013"),
+    user1.address,
+    "Chad #8985",
+    "https://i.seadn.io/gae/o6s_d94js0oyHQCAxSM5DoznWOE0jW1q3e0N2aFwLGltlnI_rN2m_uLkrN7vg9rayKR1-l80fl0F7a06IwAbLzVuApouf48vdm6Y"
+  );
+
+  await defenDAOFactory.mockRecordRecentSold(
+    "0x9b9f542456ad12796ccb8eb6644f29e3314e68e1",
+    7791,
+    ethers.utils.parseEther("0.013"),
+    user1.address,
+    "Chad #7791",
+    "https://i.seadn.io/gae/qQ5ojHPPfsV88ZMtbYzvSfc5iKhpPuJ7DItNW4Dt8gcj398qAH7BzQ29dmDChvmtW81s2H5SvCkCHgzwHU-x4fkpltZrDiJsuQxkiQ"
+  );
+
+  await defenDAOFactory.mockRecordRecentSold(
+    "0x9b9f542456ad12796ccb8eb6644f29e3314e68e1",
+    8400,
+    ethers.utils.parseEther("0.0132"),
+    user1.address,
+    "Chad #8400",
+    "https://i.seadn.io/gae/DAkl9zDYmjcG8IviKYEql2lhpEpp4wKObQhJ1ckjxEwIXfwmF9U-cBhPhrQ6lPYG4EdLPA5_3BY_OPSY8EqKeMqHyyNDBtLeshlp"
   );
 
   await defenDAOFactory.mockRecordRecentSold(

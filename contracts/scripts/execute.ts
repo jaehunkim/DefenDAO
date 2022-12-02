@@ -27,7 +27,7 @@ import {
 } from "../test/data/optimism_success_721_chad";
 import seaportAbi from "../abis/seaport11.json";
 
-const collectionAddr = "0xa64158B94fb907bE3333Ad72253Af2c5822389B7";
+const collectionAddr = "0xe1E64Af7888F497195513098eA595e8A1934F8F6";
 
 const impersonateAddress = (address: string) => {
   return ethers.getImpersonatedSigner(address);
