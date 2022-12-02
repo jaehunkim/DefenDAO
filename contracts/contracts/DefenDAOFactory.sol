@@ -12,11 +12,15 @@ contract DefenDAOFactory is IDefenDAOFactory, Ownable {
     uint256 public rsBeginIdx;
     uint256 public rsEndIdx;
 
+    // key : nft address
     mapping(address => address) public getCollections;
     mapping(address => uint256) public getCollectionIndex;
+    // key : collection address
     mapping(address => address) public collectionToToken;
+    mapping(address => cInfo) public collectionInfo;
     address[] public collections;
     string[] public slugs;
+    cInfo[] public infos;
 
     event CollectionCreated(address indexed token, address collection);
 
@@ -52,6 +56,7 @@ contract DefenDAOFactory is IDefenDAOFactory, Ownable {
         collectionToToken[col] = token_;
         collections.push(col);
         slugs.push(slug_);
+        infos.push(cInfo(token_, col, slug_, 0, offerPriceUnit_));
         emit CollectionCreated(token_, col);
     }
 
@@ -62,17 +67,8 @@ contract DefenDAOFactory is IDefenDAOFactory, Ownable {
         return getCollections[token_];
     }
 
-    function getAllCollections()
-        external
-        view
-        override
-        returns (address[] memory)
-    {
-        return collections;
-    }
-
-    function getAllSlugs() external view override returns (string[] memory) {
-        return slugs;
+    function getAllInfos() external view override returns (cInfo[] memory) {
+        return infos;
     }
 
     function getRecentSolds()
@@ -89,6 +85,19 @@ contract DefenDAOFactory is IDefenDAOFactory, Ownable {
         return rss;
     }
 
+    function onTicketCountDiff(
+        bool isPlus,
+        uint256 ticketCount
+    ) external override {
+        require(collectionToToken[msg.sender] != address(0), "Invalid call");
+        uint256 index = getCollectionIndex[msg.sender];
+        if (isPlus) {
+            infos[index].totalTickets += ticketCount;
+        } else {
+            infos[index].totalTickets -= ticketCount;
+        }
+    }
+
     function recordRecentSold(
         address token_,
         uint256 nftId_,
@@ -96,7 +105,15 @@ contract DefenDAOFactory is IDefenDAOFactory, Ownable {
         address claimer_
     ) external override {
         require(collectionToToken[msg.sender] == token_, "Invalid call");
-        recentSolds[rsEndIdx] = RecentSold(token_, nftId_, price_, claimer_, msg.sender, "", "");
+        recentSolds[rsEndIdx] = RecentSold(
+            token_,
+            nftId_,
+            price_,
+            claimer_,
+            msg.sender,
+            "",
+            ""
+        );
         rsEndIdx++;
 
         if (rsEndIdx - rsBeginIdx > 10) {

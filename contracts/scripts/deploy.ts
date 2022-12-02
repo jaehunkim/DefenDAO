@@ -10,10 +10,12 @@ import {
   TestDefenDAOFactory__factory,
   TestDefenDAO__factory,
 } from "../typechain";
-import { SEAPORT_CONTRACT } from "../test/data/optimism_success_721";
-
-const floorPrice = ethers.utils.parseEther("0.0089");
-const offerPriceUnit = ethers.utils.parseEther("0.001");
+import {
+  SEAPORT_CONTRACT,
+  floorPrice,
+  offerPrice,
+  offerPriceUnit,
+} from "../test/data/optimism_success_721_chad";
 
 async function main() {
   const [deployer, seller, user1, user2] = await ethers.getSigners();
@@ -28,9 +30,9 @@ async function main() {
   console.log("DefenDAOFactory Deployed \t\t ", defenDAOFactory.address);
 
   await defenDAOFactory.makeCollection(
-    "0x0110Bb5739a6F82eafc748418e572Fc67d854a0F",
+    "0x9b9f542456ad12796ccb8eb6644f29e3314e68e1",
     SEAPORT_CONTRACT,
-    "early-optimists",
+    "optichads",
     floorPrice,
     offerPriceUnit
   );
@@ -62,19 +64,21 @@ async function main() {
   // await defenDAO.connect(user2).makeOffer(offerPrice, user2OfferCount);
 
   const user1Offers = [
-    { price: "0.003", count: 20 },
-    { price: "0.005", count: 13 },
-    { price: "0.008", count: 7 },
+    { price: "0.00125", count: 20 },
+    { price: "0.0075", count: 65 },
+    { price: "0.0125", count: 170 },
   ];
   const user2Offers = [
-    { price: "0.001", count: 12 },
-    { price: "0.002", count: 18 },
-    { price: "0.003", count: 23 },
-    { price: "0.004", count: 50 },
-    { price: "0.005", count: 40 },
-    { price: "0.006", count: 21 },
-    { price: "0.007", count: 15 },
-    { price: "0.008", count: 5 },
+    { price: "0.00125", count: 18 },
+    { price: "0.0025", count: 46 },
+    { price: "0.00375", count: 150 },
+    { price: "0.005", count: 160 },
+    { price: "0.00625", count: 105 },
+    { price: "0.0075", count: 90 },
+    { price: "0.00875", count: 35 },
+    { price: "0.01", count: 640 },
+    { price: "0.01125", count: 199 },
+    { price: "0.0125", count: 120 },
   ];
 
   console.log("User1", user1.address);
@@ -83,7 +87,7 @@ async function main() {
     const count = user1Offer.count;
     await user1.sendTransaction({
       to: defenDAO.address,
-      value: price.mul(count),
+      value: offerPriceUnit.mul(count),
     });
 
     await defenDAO.connect(user1).makeOffer(price, count);
@@ -94,13 +98,19 @@ async function main() {
     const count = user2Offer.count;
     await user2.sendTransaction({
       to: defenDAO.address,
-      value: price.mul(count),
+      value: offerPriceUnit.mul(count),
     });
 
-    await defenDAO
-      .connect(user2)
-      .makeOffer(ethers.utils.parseEther(user2Offer.price), user2Offer.count);
+    await defenDAO.connect(user2).makeOffer(price, count);
   }
+
+  await defenDAOFactory.makeCollection(
+    "0x0110Bb5739a6F82eafc748418e572Fc67d854a0F",
+    SEAPORT_CONTRACT,
+    "early-optimists",
+    floorPrice,
+    offerPriceUnit
+  );
 
   await defenDAOFactory.makeCollection(
     "0xfA14e1157F35E1dAD95dC3F822A9d18c40e360E2",
@@ -133,6 +143,15 @@ async function main() {
     user1.address,
     "Early Optimists #1761",
     "https://i.seadn.io/gae/eFYickzmV6OdT64TLARFnUvYtmZ2Tthg_ACbplbZVVg-aYv9-SdwlQ1HxYwBRDeTF0ExLskLCogDHiMF1qyzZPvuOxDS-qsHHApfsA"
+  );
+
+  await defenDAOFactory.mockRecordRecentSold(
+    "0x9b9f542456ad12796ccb8eb6644f29e3314e68e1",
+    8965,
+    ethers.utils.parseEther("0.013"),
+    user1.address,
+    "Chad #8965",
+    "https://i.seadn.io/gae/A45gUm0-AVTsjHaeD6rztReTBLTAmJU-xCp2FHGRLf4aJ3rzF8MBOhLTtabeK9L60l36W5L1idsOmUSf7J8NgXbrZY6mc1GQ8hkr"
   );
 
   await defenDAOFactory.mockRecordRecentSold(

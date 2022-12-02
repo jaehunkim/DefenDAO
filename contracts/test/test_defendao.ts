@@ -13,8 +13,25 @@ import {
   ISeaport__factory,
   ERC721__factory,
   ERC721,
+  TestDefenDAOFactory__factory,
 } from "../typechain";
+// import {
+//   BLOCK_NUMBER,
+//   SEAPORT_CONTRACT,
+//   NFT_CONTRACT,
+//   NFT_TOKEN_ID,
+//   floorPrice,
+//   offerPrice,
+//   offerPriceUnit,
+//   buyerAddress,
+//   orderParams,
+//   criteriaResolvers,
+//   fulfillerConduitKey,
+//   recipient,
+//   txData,
+// } from "./data/optimism_success_721";
 import {
+  BLOCK_NUMBER,
   SEAPORT_CONTRACT,
   NFT_CONTRACT,
   NFT_TOKEN_ID,
@@ -27,11 +44,13 @@ import {
   fulfillerConduitKey,
   recipient,
   txData,
-} from "./data/optimism_success_721";
+  collectionSlug,
+} from "./data/optimism_success_721_chad";
 import { ethNumToWeiBn } from "../utils/ethNumToWeiBn";
 import { ERC1155__factory } from "../typechain/factories/ERC1155__factory";
 import seaportAbi from "../abis/seaport11.json";
 import { txHashToOrderParams } from "../utils/txHashToOrderParams";
+import { basicOrderToOrder } from "../utils/basicOrderToOrder";
 
 async function getTxGas(tx: ContractTransaction): Promise<BigNumber> {
   const txReceipt = await ethers.provider.getTransactionReceipt(tx.hash);
@@ -50,17 +69,42 @@ describe("DefenDAO", function () {
   let user2: SignerWithAddress;
   let erc721: ERC721;
   let defenDAO: TestDefenDAO;
+  before(async function () {
+    await ethers.provider.send("hardhat_reset", [
+      {
+        forking: {
+          jsonRpcUrl: `https://opt-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
+          blockNumber: BLOCK_NUMBER - 1,
+        },
+      },
+    ]);
+  });
   it("Should create new DefenDAO", async function () {
     [deployer, user1, user2] = await ethers.getSigners();
     erc721 = ERC721__factory.connect(NFT_CONTRACT, deployer);
-    defenDAO = await new TestDefenDAO__factory(deployer).deploy();
-    await defenDAO.deployed();
-    await defenDAO.initialize(
+
+    const defenDAOFactory = await new TestDefenDAOFactory__factory(
+      deployer
+    ).deploy();
+    await defenDAOFactory.deployed();
+
+    await defenDAOFactory.makeCollection(
       erc721.address,
       SEAPORT_CONTRACT,
+      collectionSlug,
       floorPrice,
       offerPriceUnit
     );
+
+    const blockNumBefore = await ethers.provider.getBlockNumber();
+    const filter = defenDAOFactory.filters.CollectionCreated();
+    const events = await defenDAOFactory.queryFilter(
+      filter,
+      blockNumBefore - 1
+    );
+    const lastevent = events[events.length - 1];
+    const collectionAddr = lastevent.args.collection;
+    defenDAO = await TestDefenDAO__factory.connect(collectionAddr, deployer);
   });
 
   it("Should make offer", async function () {
@@ -191,6 +235,7 @@ describe("DefenDAO", function () {
     );
     console.log("user1BalanceBefore: ", user1BalanceBefore);
     console.log("user2BalanceBefore: ", user2BalanceBefore);
+    console.log("NFT OWNER:", await erc721.ownerOf(NFT_TOKEN_ID));
 
     // TODO: remove once signature validation issue is resolved
     const validateTx = await seaport.connect(offerer).validate(
@@ -233,10 +278,6 @@ describe("DefenDAO", function () {
     );
     console.log("user1BalanceAfter: ", user1BalanceAfter);
     console.log("user2BalanceAfter: ", user2BalanceAfter);
-    console.log(
-      "await erc721.ownerOf(NFT_TOKEN_ID): ",
-      await erc721.ownerOf(NFT_TOKEN_ID)
-    );
     const claimerAddress = await defenDAO.claimableNFTs(NFT_TOKEN_ID);
     expect(claimerAddress).to.be.oneOf([user1.address, user2.address]);
     expect(await erc721.ownerOf(NFT_TOKEN_ID)).to.equal(defenDAO.address);
@@ -255,6 +296,8 @@ describe("DefenDAO", function () {
     // console.log("NFT OWNER:", await erc721.ownerOf(NFT_TOKEN_ID));
 
     /* Version 3. seaport contract 에 직접 전송 */
+    // console.log("NFT OWNER:", await erc721.ownerOf(NFT_TOKEN_ID));
+
     // const tx = await seaport
     //   .connect(deployer)
     //   .fulfillAdvancedOrder(
@@ -270,13 +313,23 @@ describe("DefenDAO", function () {
     // const receipt = await tx.wait();
     // console.log("tx:", tx);
     // console.log("receipt:", receipt);
+    // console.log("NFT OWNER:", await erc721.ownerOf(NFT_TOKEN_ID));
     // expect(await erc721.ownerOf(NFT_TOKEN_ID)).to.equal(recipient);
   });
 
   it("Should claim NFT", async function () {
-    const claimerAddress = await defenDAO.claimableNFTs([NFT_TOKEN_ID]);
+    const claimerAddress = await defenDAO.claimableNFTs(NFT_TOKEN_ID);
+
+    let claimableNFTs = await defenDAO.getClaimableNFTs(claimerAddress);
+    expect(claimableNFTs.length).to.equal(1);
+    expect(claimableNFTs[0]).to.equal(NFT_TOKEN_ID);
+
     const claimer = await impersonateAddress(claimerAddress);
     await defenDAO.connect(claimer).claimNFTs([NFT_TOKEN_ID]);
     expect(await erc721.ownerOf(NFT_TOKEN_ID)).to.equal(claimerAddress);
+
+    claimableNFTs = await defenDAO.getClaimableNFTs(claimerAddress);
+    expect(claimableNFTs.length).to.equal(1);
+    expect(claimableNFTs[0]).to.equal(0);
   });
 });

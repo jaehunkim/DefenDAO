@@ -37,10 +37,11 @@ const config: HardhatUserConfig = {
     hardhat: {
       forking: {
         url: `https://opt-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
-        blockNumber: 25782413,
+        blockNumber: 44470472,
         // url: `https://eth-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
         // blockNumber: 16065780,
       },
+      chainId: 1337,
     },
     ropsten: {
       url: process.env.ROPSTEN_URL || "",

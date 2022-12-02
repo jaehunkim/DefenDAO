@@ -4,6 +4,7 @@ import InputDataDecoder from "ethereum-input-data-decoder";
 import seaportAbi10 from "../abis/seaport10.json";
 import seaportAbi11 from "../abis/seaport11.json";
 import { AdvancedOrder, BasicOrderParameters, Order } from "../types/order";
+import { basicOrderToOrder } from "./basicOrderToOrder";
 
 const opProvider = new ethers.providers.AlchemyProvider(
   "optimism",
@@ -41,6 +42,8 @@ export const txHashToOrderParams = async (txHash: string) => {
       signature: inputs[17],
     };
     console.log(JSON.stringify(basicOrderParams, null, 2));
+    const order = await basicOrderToOrder(basicOrderParams);
+    console.log("order: ", order);
     return { order: basicOrderParams };
   } else if (result.method === "fulfillOrder") {
     const inputs = result.inputs[0];

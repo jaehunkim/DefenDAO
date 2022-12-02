@@ -8,6 +8,7 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
 import "./IDefenDAO.sol";
+import "./IDefenDAOFactory.sol";
 import {ISeaport} from "./ISeaport.sol";
 import {Order, AdvancedOrder, CriteriaResolver, ItemType} from "./ConsiderationStructs.sol";
 
@@ -28,6 +29,7 @@ contract DefenDAO is
     mapping(uint256 => mapping(address => uint256)) public userOfferBalances;
     mapping(uint256 => uint256) public offerBalanceSum;
     mapping(uint256 => address[]) public offerBalanceAddrOrders;
+    mapping(address => uint256[]) public userClaimableNFTs;
     mapping(uint256 => address) public claimableNFTs;
 
     function initialize(
@@ -46,10 +48,18 @@ contract DefenDAO is
 
     // TODO: need to handle transferring eth and making an offer atomically
     function makeOffer(uint256 price, uint256 offerCount) external override {
+        console.log("makeOffer:price \t\t\t\t", price);
+        console.log("makeOffer:offerCount \t\t\t", offerCount);
+        console.log("makeOffer:offerPriceUnit \t\t\t", offerPriceUnit);
         uint256 contractEtherBalance = getBalance();
         uint256 totalOfferAmount = getBalance() - reserve;
+        console.log("makeOffer:totalOfferAmount \t\t\t", totalOfferAmount);
+        console.log(
+            "makeOffer:offerCount * offerPriceUnit \t",
+            offerCount * offerPriceUnit
+        );
         require(
-            totalOfferAmount == offerCount * price,
+            totalOfferAmount >= offerCount * offerPriceUnit,
             "incorrect offer count"
         );
         userOfferBalances[price][msg.sender] += offerCount;
@@ -72,6 +82,7 @@ contract DefenDAO is
                 offerBalanceAddrOrders[price].push(msg.sender);
             }
         }
+        IDefenDAOFactory(defenDAOFactory).onTicketCountDiff(true, offerCount);
         emit MadeOffer(msg.sender, price, offerCount);
     }
 
@@ -89,6 +100,13 @@ contract DefenDAO is
         }("");
         require(sent, "Failed to send Ether");
         reserve = getBalance();
+        IDefenDAOFactory(defenDAOFactory).onTicketCountDiff(false, offerCount);
+    }
+
+    function getClaimableNFTs(
+        address addr
+    ) external view override returns (uint256[] memory) {
+        return userClaimableNFTs[addr];
     }
 
     function claimNFTs(uint256[] memory tokenIds) external override {
@@ -108,6 +126,12 @@ contract DefenDAO is
                 ""
             );
             delete claimableNFTs[tokenIds[i]];
+            for (uint256 j = 0; j < userClaimableNFTs[msg.sender].length; j++) {
+                if (userClaimableNFTs[msg.sender][j] == tokenIds[i]) {
+                    delete userClaimableNFTs[msg.sender][j];
+                    break;
+                }
+            }
         }
     }
 
@@ -271,6 +295,9 @@ contract DefenDAO is
         claimableNFTs[order.parameters.offer[0].identifierOrCriteria] = winner[
             0
         ];
+        userClaimableNFTs[winner[0]].push(
+            order.parameters.offer[0].identifierOrCriteria
+        );
 
         /* Seaport v1.0 */
         // bool fulfilled = ISeaport(marketplaceAddress).fulfillOrder{
