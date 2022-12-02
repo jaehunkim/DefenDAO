@@ -83,7 +83,7 @@ async function main() {
     const count = user1Offer.count;
     await user1.sendTransaction({
       to: defenDAO.address,
-      value: price.mul(count),
+      value: offerPriceUnit.mul(count),
     });
 
     await defenDAO.connect(user1).makeOffer(price, count);
@@ -94,12 +94,10 @@ async function main() {
     const count = user2Offer.count;
     await user2.sendTransaction({
       to: defenDAO.address,
-      value: price.mul(count),
+      value: offerPriceUnit.mul(count),
     });
 
-    await defenDAO
-      .connect(user2)
-      .makeOffer(ethers.utils.parseEther(user2Offer.price), user2Offer.count);
+    await defenDAO.connect(user2).makeOffer(price, count);
   }
 
   await defenDAOFactory.makeCollection(

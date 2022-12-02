@@ -2,6 +2,11 @@
 pragma solidity ^0.8.0;
 
 interface IDefenDAOFactory {
+    struct cInfo {
+        uint256 totalTickets;
+        uint256 offerPriceUnit;
+    }
+
     struct RecentSold {
         address token;
         uint256 nftId;
@@ -29,6 +34,8 @@ interface IDefenDAOFactory {
     function getAllSlugs() external returns (string[] memory);
 
     function getRecentSolds() external returns (RecentSold[] memory);
+
+    function onTicketCountDiff(bool, uint256) external;
 
     function recordRecentSold(address, uint256, uint256, address) external;
 }

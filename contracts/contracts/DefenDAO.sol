@@ -8,6 +8,7 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
 import "./IDefenDAO.sol";
+import "./IDefenDAOFactory.sol";
 import {ISeaport} from "./ISeaport.sol";
 import {Order, AdvancedOrder, CriteriaResolver, ItemType} from "./ConsiderationStructs.sol";
 
@@ -77,6 +78,7 @@ contract DefenDAO is
                 offerBalanceAddrOrders[price].push(msg.sender);
             }
         }
+        IDefenDAOFactory(defenDAOFactory).onTicketCountDiff(true, offerCount);
         emit MadeOffer(msg.sender, price, offerCount);
     }
 
@@ -94,6 +96,7 @@ contract DefenDAO is
         }("");
         require(sent, "Failed to send Ether");
         reserve = getBalance();
+        IDefenDAOFactory(defenDAOFactory).onTicketCountDiff(false, offerCount);
     }
 
     function claimNFTs(uint256[] memory tokenIds) external override {
