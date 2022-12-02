@@ -48,12 +48,13 @@ contract DefenDAO is
     function makeOffer(uint256 price, uint256 offerCount) external override {
         console.log("makeOffer:price \t\t", price);
         console.log("makeOffer:offerCount \t\t", offerCount);
+        console.log("makeOffer:offerPriceUnit \t", offerPriceUnit);
         uint256 contractEtherBalance = getBalance();
         uint256 totalOfferAmount = getBalance() - reserve;
         console.log("makeOffer:totalOfferAmount \t", totalOfferAmount);
         console.log("makeOffer:offerCount * price \t", offerCount * price);
         require(
-            totalOfferAmount >= offerCount * price,
+            totalOfferAmount >= offerCount * offerPriceUnit,
             "incorrect offer count"
         );
         userOfferBalances[price][msg.sender] += offerCount;
@@ -88,9 +89,9 @@ contract DefenDAO is
         userOfferBalances[price][user] -= offerCount;
         offerBalanceSum[price] -= offerCount;
         emit CancelledOffer(user, price, offerCount);
-        (bool sent, bytes memory data) = user.call{value: price * offerCount}(
-            ""
-        );
+        (bool sent, bytes memory data) = user.call{
+            value: offerPriceUnit * offerCount
+        }("");
         require(sent, "Failed to send Ether");
         reserve = getBalance();
     }
