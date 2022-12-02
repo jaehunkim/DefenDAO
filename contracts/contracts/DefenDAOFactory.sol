@@ -20,6 +20,7 @@ contract DefenDAOFactory is IDefenDAOFactory, Ownable {
     mapping(address => cInfo) public collectionInfo;
     address[] public collections;
     string[] public slugs;
+    cInfo[] public infos;
 
     event CollectionCreated(address indexed token, address collection);
 
@@ -55,7 +56,7 @@ contract DefenDAOFactory is IDefenDAOFactory, Ownable {
         collectionToToken[col] = token_;
         collections.push(col);
         slugs.push(slug_);
-        collectionInfo[col] = cInfo(0, offerPriceUnit_);
+        infos.push(cInfo(token_, col, slug_, 0, offerPriceUnit_));
         emit CollectionCreated(token_, col);
     }
 
@@ -66,17 +67,8 @@ contract DefenDAOFactory is IDefenDAOFactory, Ownable {
         return getCollections[token_];
     }
 
-    function getAllCollections()
-        external
-        view
-        override
-        returns (address[] memory)
-    {
-        return collections;
-    }
-
-    function getAllSlugs() external view override returns (string[] memory) {
-        return slugs;
+    function getAllInfos() external view override returns (cInfo[] memory) {
+        return infos;
     }
 
     function getRecentSolds()
@@ -98,10 +90,11 @@ contract DefenDAOFactory is IDefenDAOFactory, Ownable {
         uint256 ticketCount
     ) external override {
         require(collectionToToken[msg.sender] != address(0), "Invalid call");
+        uint256 index = getCollectionIndex[msg.sender];
         if (isPlus) {
-            collectionInfo[msg.sender].totalTickets += ticketCount;
+            infos[index].totalTickets += ticketCount;
         } else {
-            collectionInfo[msg.sender].totalTickets -= ticketCount;
+            infos[index].totalTickets -= ticketCount;
         }
     }
 

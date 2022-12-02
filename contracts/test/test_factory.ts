@@ -45,7 +45,7 @@ describe("DefenDAOFactory", function () {
   });
 
   it("Should check initial states", async function () {
-    expect((await defenDAOFactory.getAllCollections()).length).to.be.equals(0);
+    expect((await defenDAOFactory.getAllInfos()).length).to.be.equals(0);
   });
 
   it("Should create new collecton", async function () {
@@ -75,7 +75,7 @@ describe("DefenDAOFactory", function () {
     const collectionAddr = lastevent.args.collection;
     defenDAO = await TestDefenDAO__factory.connect(collectionAddr, deployer);
 
-    expect((await defenDAOFactory.getAllCollections()).length).to.be.equals(1);
+    expect((await defenDAOFactory.getAllInfos()).length).to.be.equals(1);
     expect(
       await defenDAOFactory.getCollection(mockERC721.address)
     ).to.be.equals(defenDAO.address);

@@ -14,6 +14,7 @@ export const NFT_TOKEN_ID = 8645;
 export const floorPrice = ethNumToWeiBn(0.0125);
 export const offerPrice = ethNumToWeiBn(0.0125);
 export const offerPriceUnit = ethNumToWeiBn(0.00125);
+export const collectionSlug = "optichads";
 
 export const buyerAddress = "0x742B3E9187EA69EF2f74a64849F8880119093489";
 

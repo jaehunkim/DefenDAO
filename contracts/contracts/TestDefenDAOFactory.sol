@@ -33,6 +33,7 @@ contract TestDefenDAOFactory is DefenDAOFactory {
         collectionToToken[col] = token_;
         collections.push(col);
         slugs.push(slug_);
+        infos.push(cInfo(token_, col, slug_, 0, offerPriceUnit_));
         emit CollectionCreated(token_, col);
     }
 

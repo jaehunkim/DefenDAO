@@ -24,10 +24,10 @@ import {
   fulfillerConduitKey,
   recipient,
   txData,
-} from "../test/data/optimism_success_721";
+} from "../test/data/optimism_success_721_chad";
 import seaportAbi from "../abis/seaport11.json";
 
-const collectionAddr = "0xFd84FDF38D88d1449A906BFF0016740AfAC8A95A";
+const collectionAddr = "0xa64158B94fb907bE3333Ad72253Af2c5822389B7";
 
 const impersonateAddress = (address: string) => {
   return ethers.getImpersonatedSigner(address);

@@ -26,6 +26,8 @@ interface IDefenDAO {
 
     function cancelOffer(uint256 price, uint256 offerCount) external;
 
+    function getClaimableNFTs(address addr) external returns (uint256[] memory);
+
     function claimNFTs(uint256[] memory tokenIds) external;
 
     function execute(
