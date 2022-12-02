@@ -65,20 +65,20 @@ async function main() {
 
   const user1Offers = [
     { price: "0.00125", count: 20 },
-    { price: "0.0075", count: 65 },
-    { price: "0.0125", count: 170 },
+    { price: "0.0075", count: 15 },
+    { price: "0.0125", count: 17 },
   ];
   const user2Offers = [
     { price: "0.00125", count: 18 },
-    { price: "0.0025", count: 46 },
-    { price: "0.00375", count: 150 },
-    { price: "0.005", count: 160 },
-    { price: "0.00625", count: 105 },
-    { price: "0.0075", count: 90 },
-    { price: "0.00875", count: 35 },
-    { price: "0.01", count: 640 },
-    { price: "0.01125", count: 199 },
-    { price: "0.0125", count: 120 },
+    { price: "0.0025", count: 23 },
+    { price: "0.00375", count: 50 },
+    { price: "0.005", count: 40 },
+    { price: "0.00625", count: 25 },
+    { price: "0.0075", count: 15 },
+    { price: "0.00875", count: 5 },
+    { price: "0.01", count: 80 },
+    { price: "0.01125", count: 18 },
+    { price: "0.0125", count: 12 },
   ];
 
   console.log("User1", user1.address);
@@ -87,7 +87,7 @@ async function main() {
     const count = user1Offer.count;
     await user1.sendTransaction({
       to: defenDAO.address,
-      value: offerPriceUnit.mul(count),
+      value: price.mul(count).div(10),
     });
 
     await defenDAO.connect(user1).makeOffer(price, count);
@@ -98,7 +98,7 @@ async function main() {
     const count = user2Offer.count;
     await user2.sendTransaction({
       to: defenDAO.address,
-      value: offerPriceUnit.mul(count),
+      value: price.mul(count).div(10),
     });
 
     await defenDAO.connect(user2).makeOffer(price, count);
@@ -182,7 +182,7 @@ async function main() {
   );
 
   const recentSolds = await defenDAOFactory.getRecentSolds();
-  console.log(recentSolds);
+  // console.log(recentSolds);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

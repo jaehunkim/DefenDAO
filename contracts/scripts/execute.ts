@@ -73,7 +73,7 @@ async function main() {
     .execute(offerPrice, orderParams, criteriaResolvers, fulfillerConduitKey, {
       gasLimit: 500_000,
     });
-  console.log("executeTx:", executeTx);
+  // console.log("executeTx:", executeTx);
   console.log("NFT OWNER:", await erc721.ownerOf(NFT_TOKEN_ID));
   const user1BalanceAfter = await defenDAO.userOfferBalances(
     offerPrice,

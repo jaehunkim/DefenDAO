@@ -79,6 +79,7 @@ describe("DefenDAO", function () {
       },
     ]);
   });
+
   it("Should create new DefenDAO", async function () {
     [deployer, user1, user2] = await ethers.getSigners();
     erc721 = ERC721__factory.connect(NFT_CONTRACT, deployer);
@@ -115,11 +116,11 @@ describe("DefenDAO", function () {
     const user1OfferCount = 8;
     await user1.sendTransaction({
       to: defenDAO.address,
-      value: offerPriceUnit.mul(user1OfferCount),
+      value: offerPrice.mul(user1OfferCount).div(10),
     });
     await defenDAO.connect(user1).makeOffer(offerPrice, user1OfferCount);
     expect(await defenDAO.getBalance()).to.equal(
-      offerPriceUnit.mul(user1OfferCount)
+      offerPrice.mul(user1OfferCount).div(10)
     );
     expect(await defenDAO.getUserOffers(user1.address, offerPrice)).to.equal(
       user1OfferCount
@@ -135,11 +136,11 @@ describe("DefenDAO", function () {
     const user2OfferCount = 12;
     await user2.sendTransaction({
       to: defenDAO.address,
-      value: offerPriceUnit.mul(user2OfferCount),
+      value: offerPrice.mul(user2OfferCount).div(10),
     });
     await defenDAO.connect(user2).makeOffer(offerPrice, user2OfferCount);
     expect(await defenDAO.getBalance()).to.equal(
-      offerPriceUnit.mul(user1OfferCount + user2OfferCount)
+      offerPrice.mul(user1OfferCount + user2OfferCount).div(10)
     );
     expect(await defenDAO.getUserOffers(user2.address, offerPrice)).to.equal(
       user2OfferCount
@@ -166,7 +167,7 @@ describe("DefenDAO", function () {
     const cancelTx = await defenDAO.connect(user1).cancelOffer(offerPrice, 1);
     const txGas = await getTxGas(cancelTx);
     expect(await user1.getBalance()).to.equal(
-      user1Balance.add(offerPriceUnit.mul(user1CancelCount)).sub(txGas)
+      user1Balance.add(offerPrice.mul(user1CancelCount).div(10)).sub(txGas)
     );
     expect(await defenDAO.getUserOffers(user1.address, offerPrice)).to.equal(
       user1OfferCount.sub(user1CancelCount)

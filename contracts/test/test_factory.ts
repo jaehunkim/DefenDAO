@@ -91,14 +91,14 @@ describe("DefenDAOFactory", function () {
     const user1OfferCount = 8;
     await user1.sendTransaction({
       to: defenDAO.address,
-      value: offerPriceUnit.mul(user1OfferCount),
+      value: offerPrice.mul(user1OfferCount).div(10),
     });
     await defenDAO.connect(user1).makeOffer(offerPrice, user1OfferCount);
 
     const user2OfferCount = 12;
     await user2.sendTransaction({
       to: defenDAO.address,
-      value: offerPriceUnit.mul(user2OfferCount),
+      value: offerPrice.mul(user2OfferCount).div(10),
     });
     await defenDAO.connect(user2).makeOffer(offerPrice, user2OfferCount);
 

@@ -48,18 +48,17 @@ contract DefenDAO is
 
     // TODO: need to handle transferring eth and making an offer atomically
     function makeOffer(uint256 price, uint256 offerCount) external override {
-        console.log("makeOffer:price \t\t\t\t", price);
-        console.log("makeOffer:offerCount \t\t\t", offerCount);
-        console.log("makeOffer:offerPriceUnit \t\t\t", offerPriceUnit);
         uint256 contractEtherBalance = getBalance();
         uint256 totalOfferAmount = getBalance() - reserve;
-        console.log("makeOffer:totalOfferAmount \t\t\t", totalOfferAmount);
-        console.log(
-            "makeOffer:offerCount * offerPriceUnit \t",
-            offerCount * offerPriceUnit
-        );
+
+        console.log("makeOffer:price \t\t", price);
+        console.log("makeOffer:offerCount \t\t", offerCount);
+        console.log("makeOffer:offerPriceUnit \t", offerPriceUnit);
+        console.log("makeOffer:totalOfferAmount \t", totalOfferAmount);
+        console.log("makeOffer:offerCount * price \t", offerCount * price);
+
         require(
-            totalOfferAmount >= offerCount * offerPriceUnit,
+            totalOfferAmount >= (offerCount * price) / 10,
             "incorrect offer count"
         );
         userOfferBalances[price][msg.sender] += offerCount;
@@ -96,7 +95,7 @@ contract DefenDAO is
         offerBalanceSum[price] -= offerCount;
         emit CancelledOffer(user, price, offerCount);
         (bool sent, bytes memory data) = user.call{
-            value: offerPriceUnit * offerCount
+            value: (price * offerCount) / 10
         }("");
         require(sent, "Failed to send Ether");
         reserve = getBalance();
