@@ -26,6 +26,10 @@ Want to snipe a collection at a price lower than the current floor price but can
 
 TODO: architecture, design decisions, optimism, opensea, ...
 
+### Frontend
+
+https://github.com/pureboy11/hackathon
+
 ### Contracts
 
 Expected node version is >= 16.0.0
