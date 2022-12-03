@@ -102,3 +102,11 @@ dist
 
 # TernJS port file
 .tern-port
+
+coverage
+coverage.json
+
+#Hardhat files
+cache
+artifacts
+dist
