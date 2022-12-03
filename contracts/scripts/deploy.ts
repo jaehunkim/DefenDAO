@@ -42,10 +42,7 @@ async function main() {
   const events = await defenDAOFactory.queryFilter(filter, blockNumBefore - 1);
   const lastevent = events[events.length - 1];
   const collectionAddr = lastevent.args.collection;
-  const defenDAO = await TestDefenDAO__factory.connect(
-    collectionAddr,
-    deployer
-  );
+  const defenDAO = TestDefenDAO__factory.connect(collectionAddr, deployer);
   console.log("DefenDAO collection created \t\t ", defenDAO.address);
 
   // const user1OfferCount = 8;
@@ -65,20 +62,20 @@ async function main() {
 
   const user1Offers = [
     { price: "0.00125", count: 20 },
-    { price: "0.0075", count: 65 },
-    { price: "0.0125", count: 170 },
+    { price: "0.0075", count: 15 },
+    // { price: "0.0125", count: 17 },
   ];
   const user2Offers = [
     { price: "0.00125", count: 18 },
-    { price: "0.0025", count: 46 },
-    { price: "0.00375", count: 150 },
-    { price: "0.005", count: 160 },
-    { price: "0.00625", count: 105 },
-    { price: "0.0075", count: 90 },
-    { price: "0.00875", count: 35 },
-    { price: "0.01", count: 640 },
-    { price: "0.01125", count: 199 },
-    { price: "0.0125", count: 120 },
+    { price: "0.0025", count: 23 },
+    { price: "0.00375", count: 50 },
+    { price: "0.005", count: 40 },
+    { price: "0.00625", count: 25 },
+    { price: "0.0075", count: 15 },
+    { price: "0.00875", count: 5 },
+    { price: "0.01", count: 80 },
+    { price: "0.01125", count: 18 },
+    // { price: "0.0125", count: 12 },
   ];
 
   console.log("User1", user1.address);
@@ -87,7 +84,7 @@ async function main() {
     const count = user1Offer.count;
     await user1.sendTransaction({
       to: defenDAO.address,
-      value: offerPriceUnit.mul(count),
+      value: price.mul(count).div(10),
     });
 
     await defenDAO.connect(user1).makeOffer(price, count);
@@ -98,43 +95,66 @@ async function main() {
     const count = user2Offer.count;
     await user2.sendTransaction({
       to: defenDAO.address,
-      value: offerPriceUnit.mul(count),
+      value: price.mul(count).div(10),
     });
 
     await defenDAO.connect(user2).makeOffer(price, count);
   }
 
-  await defenDAOFactory.makeCollection(
-    "0x0110Bb5739a6F82eafc748418e572Fc67d854a0F",
-    SEAPORT_CONTRACT,
-    "early-optimists",
-    floorPrice,
-    offerPriceUnit
-  );
+  const defenDAOInfos = [
+    {
+      address: "0x0110Bb5739a6F82eafc748418e572Fc67d854a0F",
+      slug: "early-optimists",
+      floor: ethers.utils.parseEther("0.008"),
+      unit: ethers.utils.parseEther("0.0008"),
+      dummyCount: 200,
+    },
+    {
+      address: "0xfA14e1157F35E1dAD95dC3F822A9d18c40e360E2",
+      slug: "optimism-quests",
+      floor: ethers.utils.parseEther("0.0005"),
+      unit: ethers.utils.parseEther("0.00005"),
+      dummyCount: 180,
+    },
+    {
+      address: "0x74a002d13f5f8af7f9a971f006b9a46c9b31dabd",
+      slug: "rabbithole-l2-explorer",
+      floor: ethers.utils.parseEther("0.0005"),
+      unit: ethers.utils.parseEther("0.00005"),
+      dummyCount: 170,
+    },
+    {
+      address: "0x81b30ff521D1fEB67EDE32db726D95714eb00637",
+      slug: "optimistic-explorer",
+      floor: ethers.utils.parseEther("0.0005"),
+      unit: ethers.utils.parseEther("0.00005"),
+      dummyCount: 150,
+    },
+  ];
 
-  await defenDAOFactory.makeCollection(
-    "0xfA14e1157F35E1dAD95dC3F822A9d18c40e360E2",
-    SEAPORT_CONTRACT,
-    "optimism-quests",
-    ethers.utils.parseEther("0.0005"),
-    ethers.utils.parseEther("0.00005")
-  );
+  for (const info of defenDAOInfos) {
+    await defenDAOFactory.makeCollection(
+      info.address,
+      SEAPORT_CONTRACT,
+      info.slug,
+      info.floor,
+      info.unit
+    );
 
-  await defenDAOFactory.makeCollection(
-    "0x74a002d13f5f8af7f9a971f006b9a46c9b31dabd",
-    SEAPORT_CONTRACT,
-    "rabbithole-l2-explorer",
-    ethers.utils.parseEther("0.0005"),
-    ethers.utils.parseEther("0.00005")
-  );
+    const events = await defenDAOFactory.queryFilter(filter);
+    const lastevent = events[events.length - 1];
+    const newAddr = lastevent.args.collection;
+    const daoContract = TestDefenDAO__factory.connect(newAddr, user2);
 
-  await defenDAOFactory.makeCollection(
-    "0x81b30ff521D1fEB67EDE32db726D95714eb00637",
-    SEAPORT_CONTRACT,
-    "optimistic-explorer",
-    ethers.utils.parseEther("0.0003"),
-    ethers.utils.parseEther("0.00005")
-  );
+    const price = info.unit.mul(3);
+    const count = info.dummyCount;
+    await user2.sendTransaction({
+      to: daoContract.address,
+      value: price.mul(count).div(10),
+    });
+
+    await daoContract.makeOffer(price, count);
+  }
 
   await defenDAOFactory.mockRecordRecentSold(
     "0x0110Bb5739a6F82eafc748418e572Fc67d854a0F",
@@ -152,6 +172,33 @@ async function main() {
     user1.address,
     "Chad #8965",
     "https://i.seadn.io/gae/A45gUm0-AVTsjHaeD6rztReTBLTAmJU-xCp2FHGRLf4aJ3rzF8MBOhLTtabeK9L60l36W5L1idsOmUSf7J8NgXbrZY6mc1GQ8hkr"
+  );
+
+  await defenDAOFactory.mockRecordRecentSold(
+    "0x9b9f542456ad12796ccb8eb6644f29e3314e68e1",
+    8985,
+    ethers.utils.parseEther("0.013"),
+    user1.address,
+    "Chad #8985",
+    "https://i.seadn.io/gae/o6s_d94js0oyHQCAxSM5DoznWOE0jW1q3e0N2aFwLGltlnI_rN2m_uLkrN7vg9rayKR1-l80fl0F7a06IwAbLzVuApouf48vdm6Y"
+  );
+
+  await defenDAOFactory.mockRecordRecentSold(
+    "0x9b9f542456ad12796ccb8eb6644f29e3314e68e1",
+    7791,
+    ethers.utils.parseEther("0.013"),
+    user1.address,
+    "Chad #7791",
+    "https://i.seadn.io/gae/qQ5ojHPPfsV88ZMtbYzvSfc5iKhpPuJ7DItNW4Dt8gcj398qAH7BzQ29dmDChvmtW81s2H5SvCkCHgzwHU-x4fkpltZrDiJsuQxkiQ"
+  );
+
+  await defenDAOFactory.mockRecordRecentSold(
+    "0x9b9f542456ad12796ccb8eb6644f29e3314e68e1",
+    8400,
+    ethers.utils.parseEther("0.0132"),
+    user1.address,
+    "Chad #8400",
+    "https://i.seadn.io/gae/DAkl9zDYmjcG8IviKYEql2lhpEpp4wKObQhJ1ckjxEwIXfwmF9U-cBhPhrQ6lPYG4EdLPA5_3BY_OPSY8EqKeMqHyyNDBtLeshlp"
   );
 
   await defenDAOFactory.mockRecordRecentSold(
@@ -182,7 +229,7 @@ async function main() {
   );
 
   const recentSolds = await defenDAOFactory.getRecentSolds();
-  console.log(recentSolds);
+  // console.log(recentSolds);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

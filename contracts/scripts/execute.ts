@@ -27,7 +27,7 @@ import {
 } from "../test/data/optimism_success_721_chad";
 import seaportAbi from "../abis/seaport11.json";
 
-const collectionAddr = "0xa64158B94fb907bE3333Ad72253Af2c5822389B7";
+const collectionAddr = "0xe1E64Af7888F497195513098eA595e8A1934F8F6";
 
 const impersonateAddress = (address: string) => {
   return ethers.getImpersonatedSigner(address);
@@ -73,7 +73,7 @@ async function main() {
     .execute(offerPrice, orderParams, criteriaResolvers, fulfillerConduitKey, {
       gasLimit: 500_000,
     });
-  console.log("executeTx:", executeTx);
+  // console.log("executeTx:", executeTx);
   console.log("NFT OWNER:", await erc721.ownerOf(NFT_TOKEN_ID));
   const user1BalanceAfter = await defenDAO.userOfferBalances(
     offerPrice,
