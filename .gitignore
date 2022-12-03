@@ -110,3 +110,4 @@ coverage.json
 cache
 artifacts
 dist
+typechain
