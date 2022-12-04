@@ -12,6 +12,17 @@ DeFenDAO aims to provide a tool for NFT communities to boost engagement and defe
 - [Video](https://www.youtube.com/watch?v=xiJmm0miDmc)
 - [Project slides deck](./resources/DeFendDAO.pdf)
 
+### Reproduction Steps
+
+1. Setup `.env` with ALCHEMY_API_KEY
+2. Start local node using `npx hardhat node`
+3. Deploy contracts using `yarn hardhat run scripts/deploy.ts --network localhost`
+4. Start UI using `yarn dev` and open up url `http://localhost:3000`
+5. Select Optichad collection and set target price to 0.0125, then buy 10+ tickets.
+6. Execute order using `yarn hardhat run scripts/execute.ts --network localhost`
+7. Refresh browser and check that claimable NFT has appeared.
+8. Claim NFT
+
 ## Problem
 
 ### NFT holders' perspective
