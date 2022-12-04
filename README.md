@@ -8,15 +8,15 @@ DeFenDAO aims to provide a tool for NFT communities to boost engagement and defe
 
 ## Demo
 
-- https://hackathon-dcyn.vercel.app/
-- TODO: 데모 영상 추가 필요
-- TODO: Project slides deck (pdf)
+- [Website](https://hackathon-dcyn.vercel.app/)
+- [Video](https://www.youtube.com/watch?v=xiJmm0miDmc)
+- [Project slides deck](./resources/DeFendDAO.pdf)
 
 ## Problem
 
 ### NFT holders' perspective
 
-As the NFT market experiences a downturn, NFT collections are experiencing a death spiral of lower floor prices -> lower bids -> lower confidence -> lower floor prices. But having `more bids at higher prices` can break this chain.
+As the NFT market experiences a downturn, NFT collections are experiencing a death spiral of lower floor prices -> lower bids -> lower confidence -> lower floor prices. But having `more buy bids at higher prices` can break this chain.
 
 ### NFT buyers' perspective
 
@@ -30,8 +30,8 @@ We also added a lottery system for selecting the recipient of the NFT. Liquidity
 
 ### Frontend
 
-https://github.com/pureboy11/hackathon
-TODO: Add screenshot
+https://github.com/2022DefenDAO/front
+![screenshot](./resources/website_screenshot.png)
 
 ### Contracts
 
@@ -52,29 +52,17 @@ yarn workspace contracts test
 
 ## Challenges
 
-### Problem 1
+### 1. OpenSea API not working for Optimism network
 
-OpenSea API not working for Optimism network
+=> _Used orders that had been already executed on a fork of the Optimism network (pre-execution)_
 
-### Solution 1
+### 2. Seaport fulfill functions not working because of signature verification
 
-Use orders that have been already executed on a fork of the Optimism network (pre-execution)
+=> _Used validate function before fulfill function to bypass signature verification_
 
-### Problem 2
+### 3. Seaport validate functions not working for certain order types (out of BASIC_ORDER, ORDER, ADVANCED_ORDER types, only ORDER type works)
 
-Seaport fulfill functions not working because of signature verification
-
-### Solution 2
-
-Use validate function before fulfill function to bypass signature verification
-
-### Problem 3
-
-Seaport validate functions not working for certain order types (out of BASIC_ORDER, ORDER, ADVANCED_ORDER types, only ORDER type works)
-
-### Solution 3
-
-Convert BASIC_ORDER, ADVANCED_ORDER types to ORDER type.
+=> _Converted BASIC_ORDER, ADVANCED_ORDER types to ORDER type._
 
 ## Future work
 
